@@ -232,6 +232,9 @@ static u64 __maybe_unused gic_read_iar(void)
 }
 #endif
 
+#ifdef CONFIG_ARM_GIC_V3_REDISTRIBUTOR_HACK
+#define gic_enable_redist(x)
+#else
 static void gic_enable_redist(bool enable)
 {
 	void __iomem *rbase;
@@ -265,6 +268,7 @@ static void gic_enable_redist(bool enable)
 		pr_err_ratelimited("redistributor failed to %s...\n",
 				   enable ? "wakeup" : "sleep");
 }
+#endif
 
 
 void gic_v3_dist_save(void)
