@@ -65,6 +65,12 @@ ifeq ($(CONFIG_ARCH_MSM8937), y)
 LINUXINCLUDE    += \
                 -include $(srctree)/techpack/audio/config/sdm450autoconf.h
 endif
+
+ifeq ($(CONFIG_MACH_XIAOMI_SANTONI), y)
+CONFIG_SND_SOC_AW87319=y
+export
+endif
+
 obj-y += soc/
 obj-y += dsp/
 obj-y += ipc/
