@@ -256,6 +256,15 @@ static struct notifier_block aop_qmp_clk_panic_notifier = {
 	.priority = 1,
 };
 
+/*
+ * Due to HW limitations on v1, the qdss_ao clock was not supported by the clock
+ * driver on AOP.
+ */
+static void aop_qmp_fixup_v1(void)
+{
+	aop_qmp_clk_hws[QDSS_AO_CLK] = NULL;
+}
+
 static int qmp_update_client(struct clk_hw *hw, struct device *dev,
 		struct mbox_chan **mbox)
 {
@@ -302,6 +311,9 @@ static int aop_qmp_clk_probe(struct platform_device *pdev)
 	ret = qmp_update_client(aop_qmp_clk_hws[i], &pdev->dev, &mbox);
 	if (ret < 0)
 		return ret;
+
+	if (of_device_is_compatible(pdev->dev.of_node, "qcom,aop-qmp-clk-v1"))
+		aop_qmp_fixup_v1();
 
 	clk_data = devm_kzalloc(&pdev->dev, sizeof(*clk_data), GFP_KERNEL);
 	if (!clk_data)
@@ -365,6 +377,7 @@ fail:
 }
 
 static const struct of_device_id aop_qmp_clk_of_match[] = {
+	{ .compatible = "qcom,aop-qmp-clk-v1" },
 	{ .compatible = "qcom,aop-qmp-clk", },
 	{}
 };
