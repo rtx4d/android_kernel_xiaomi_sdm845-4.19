@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2019 XiaoMi, Inc.
  */
 #include <linux/slab.h>
 #include <linux/debugfs.h>
@@ -22,6 +23,7 @@
 #include <ipc/apr_tal.h>
 #include "adsp_err.h"
 #include "q6afecal-hwdep.h"
+#include <dsp/apr_elliptic.h>
 
 #define WAKELOCK_TIMEOUT	5000
 #define AFE_CLK_TOKEN	1024
@@ -967,6 +969,11 @@ static int32_t afe_callback(struct apr_client_data *data, void *priv)
 		atomic_set(&this_afe.clk_state, 0);
 		atomic_set(&this_afe.clk_status, 0);
 		wake_up(&this_afe.lpass_core_hw_wait);
+	} else if (data->opcode == ULTRASOUND_OPCODE) {
+		if (data->payload != NULL)
+			elliptic_process_apr_payload(data->payload);
+		else
+			pr_err("[ELUS]: payload is invalid");
 	} else if (data->payload_size) {
 		uint32_t *payload;
 		uint16_t port_id = 0;
@@ -2323,6 +2330,17 @@ fail_cmd:
 		 param_info.param_id, ret, src_port);
 	return ret;
 }
+
+/* ELUS Begin */
+afe_ultrasound_state_t elus_afe = {
+       .ptr_apr = &this_afe.apr,
+       .ptr_status = &this_afe.status,
+       .ptr_state = &this_afe.state,
+       .ptr_wait = this_afe.wait,
+       .timeout_ms = TIMEOUT_MS,
+};
+EXPORT_SYMBOL(elus_afe);
+/* ELUS End */
 
 static int afe_spkr_prot_reg_event_cfg(u16 port_id, uint32_t module_id)
 {

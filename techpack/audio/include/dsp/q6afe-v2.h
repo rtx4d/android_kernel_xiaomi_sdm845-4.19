@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2019 XiaoMi, Inc.
  */
 #ifndef __Q6AFE_V2_H__
 #define __Q6AFE_V2_H__
@@ -290,6 +291,7 @@ enum {
 	IDX_RT_PROXY_PORT_002_TX,
 	/* IDX 212 */
 	IDX_HDMI_RX_MS,
+	IDX_AFE_PORT_ID_PSEUDOPORT_01,
 	AFE_MAX_PORTS
 };
 

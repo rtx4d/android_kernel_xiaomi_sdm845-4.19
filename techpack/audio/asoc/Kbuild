@@ -216,6 +216,8 @@ ifdef CONFIG_QTI_PP
 	PLATFORM_OBJS += msm-qti-pp-config.o
 endif
 
+PLATFORM_OBJS += apr_elliptic.o
+
 LINUX_INC +=	-Iinclude/linux
 
 INCS +=		$(COMMON_INC) \
@@ -257,6 +259,7 @@ KBUILD_EXTRA_SYMBOLS +=$(OUT)/obj/vendor/qcom/opensource/audio-kernel/asoc/codec
 endif
 ifeq ($(KERNEL_BUILD), 1)
 	obj-y += codecs/
+	obj-y += elliptic/
 endif
 # Module information used by KBuild framework
 obj-$(CONFIG_SND_SOC_QDSP6V2) += platform_dlkm.o
