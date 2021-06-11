@@ -334,6 +334,9 @@ dtb-$(CONFIG_ARCH_QM215) += qm215-qrd.dtb \
 	sdm429-qrd.dtb \
 	sda429-mtp.dtb \
 	sda429-cdp.dtb
+
+dtb-$(CONFIG_ARCH_MSM8937) += msm8937-pmi8950-mtp.dtb
+
 endif
 
 always		:= $(dtb-y)
