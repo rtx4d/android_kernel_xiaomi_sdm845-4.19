@@ -205,18 +205,6 @@
 
 };
 
-&gcc {
-	compatible = "qcom,gcc-8940";
-};
-
-&debugcc {
-	compatible = "qcom,cc-debug-8940";
-};
-
-&gcc_mdss {
-	compatible = "qcom,gcc-mdss-8940";
-};
-
 &bam_dmux {
 	status = "disabled";
 };
