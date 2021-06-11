@@ -205,6 +205,10 @@
 
 };
 
+&rpmcc {
+	compatible = "qcom,rpmcc-msm8940";
+};
+
 &bam_dmux {
 	status = "disabled";
 };
