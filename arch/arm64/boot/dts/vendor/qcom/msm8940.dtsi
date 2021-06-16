@@ -205,6 +205,10 @@
 
 };
 
+&gcc {
+	compatible = "qcom,gcc-msm8940";
+};
+
 &bam_dmux {
 	status = "disabled";
 };
