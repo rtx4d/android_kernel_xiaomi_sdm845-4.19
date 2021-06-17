@@ -18,9 +18,6 @@
 #include "camera.h"
 #include "msm_cci.h"
 #include "msm_camera_dt_util.h"
-#if defined(CONFIG_MACH_XIAOMI_SANTONI)
-#include <linux/hardware_info.h>
-#endif // CONFIG_SANTONI_CAMERA
 #include "msm_sensor_driver.h"
 
 /* Logging macro */
@@ -1414,22 +1411,6 @@ CSID_TG:
 	s_ctrl->sensordata->cam_slave_info = slave_info;
 
 	msm_sensor_fill_sensor_info(s_ctrl, probed_info, entity_name);
-
-
-#if defined(CONFIG_MACH_XIAOMI_SANTONI)
-	hardwareinfo_set_prop(probed_info->position == BACK_CAMERA_B
-			? HARDWARE_BACK_CAM:HARDWARE_FRONT_CAM, probed_info->sensor_name);
-	if (main_module_id > 0)  {
-		hardwareinfo_set_prop(HARDWARE_BACK_CAM_MOUDULE_ID, module_info[main_module_id]);
-	} else {
-		hardwareinfo_set_prop(HARDWARE_BACK_CAM_MOUDULE_ID, module_info[0]);
-	}
-	if (sub_module_id > 0)  {
-		hardwareinfo_set_prop(HARDWARE_FRONT_CAM_MOUDULE_ID, module_info[sub_module_id]);
-	} else{
-		hardwareinfo_set_prop(HARDWARE_FRONT_CAM_MOUDULE_ID, module_info[0]);
-	}
-#endif // CONFIG_MACH_XIAOMI_SANTONI
 
 	/*
 	 * Set probe succeeded flag to 1 so that no other camera shall
