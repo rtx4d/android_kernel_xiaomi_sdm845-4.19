@@ -1265,14 +1265,13 @@ static int scm_lock_chunk(struct kgsl_memdesc *memdesc, int lock)
 				SCM_VAL);
 	kmap_flush_unused();
 	kmap_atomic_flush_unused();
-	if (!is_scm_armv8()) {
-		result = scm_call(SCM_SVC_MP, MEM_PROTECT_LOCK_ID2,
-				&request, sizeof(request), &resp, sizeof(resp));
-	} else {
+	/*
+	 * scm_call2 now supports both 32 and 64 bit calls
+	 * so we dont need scm_call separately.
+	 */
 		result = scm_call2(SCM_SIP_FNID(SCM_SVC_MP,
 				   MEM_PROTECT_LOCK_ID2_FLAT), &desc);
 		resp = desc.ret[0];
-	}
 
 	kfree(chunk_list);
 	return result;
