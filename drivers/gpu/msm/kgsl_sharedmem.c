@@ -432,7 +432,7 @@ static int kgsl_page_alloc_vmfault(struct kgsl_memdesc *memdesc,
 	int pgoff;
 	unsigned int offset;
 
-	offset = ((unsigned long) vmf->virtual_address - vma->vm_start);
+	offset = ((unsigned long) vmf->address - vma->vm_start);
 
 	if (offset >= memdesc->size)
 		return VM_FAULT_SIGBUS;
@@ -566,11 +566,11 @@ static int kgsl_contiguous_vmfault(struct kgsl_memdesc *memdesc,
 	unsigned long offset, pfn;
 	int ret;
 
-	offset = ((unsigned long) vmf->virtual_address - vma->vm_start) >>
+	offset = ((unsigned long) vmf->address - vma->vm_start) >>
 		PAGE_SHIFT;
 
 	pfn = (memdesc->physaddr >> PAGE_SHIFT) + offset;
-	ret = vm_insert_pfn(vma, (unsigned long) vmf->virtual_address, pfn);
+	ret = vm_insert_pfn(vma, (unsigned long) vmf->address, pfn);
 
 	if (ret == -ENOMEM || ret == -EAGAIN)
 		return VM_FAULT_OOM;
