@@ -886,8 +886,6 @@ int kgsl_pwrscale_init(struct device *dev, const char *governor)
 	gpu_profile = &pwrscale->gpu_profile;
 	profile = &pwrscale->gpu_profile.profile;
 
-	kgsl_opp_add_notifier(dev, &pwr->nb);
-
 	srcu_init_notifier_head(&pwrscale->nh);
 
 	profile->initial_freq =
