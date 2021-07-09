@@ -1952,7 +1952,8 @@ static void kgsl_thermal_cycle(struct work_struct *work)
 static void kgsl_thermal_timer(struct timer_list *t)
 {
 	struct kgsl_pwrctrl *pwr = from_timer(pwr, t, thermal_timer);
-	struct kgsl_device *device = (struct kgsl_device *) data;
+	struct kgsl_device *device = container_of(pwr,
+					struct kgsl_device, pwrctrl);
 
 	/* Keep the timer running consistently despite processing time */
 	if (device->pwrctrl.thermal_highlow) {
