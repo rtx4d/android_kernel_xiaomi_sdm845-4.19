@@ -10,6 +10,7 @@
  * GNU General Public License for more details.
  *
  */
+#include <uapi/linux/sched/types.h>
 #include <linux/module.h>
 #include <linux/fb.h>
 #include <linux/file.h>
