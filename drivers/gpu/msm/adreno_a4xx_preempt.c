@@ -566,8 +566,7 @@ void a4xx_preemption_schedule(struct adreno_device *adreno_dev)
 
 int a4xx_preemption_init(struct adreno_device *adreno_dev)
 {
-	setup_timer(&adreno_dev->preempt.timer, a4xx_preemption_timer,
-		(unsigned long) adreno_dev);
+	timer_setup(&adreno_dev->preempt.timer, a4xx_preemption_timer, 0);
 
 	return 0;
 }

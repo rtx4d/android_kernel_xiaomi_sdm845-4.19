@@ -598,8 +598,7 @@ int a5xx_preemption_init(struct adreno_device *adreno_dev)
 
 	INIT_WORK(&preempt->work, _a5xx_preemption_worker);
 
-	setup_timer(&preempt->timer, _a5xx_preemption_timer,
-		(unsigned long) adreno_dev);
+	timer_setup(&preempt->timer, _a5xx_preemption_timer, 0);
 
 	/* Allocate mem for storing preemption counters */
 	ret = kgsl_allocate_global(device, &preempt->scratch,

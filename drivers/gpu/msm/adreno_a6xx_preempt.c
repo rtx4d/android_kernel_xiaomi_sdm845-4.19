@@ -743,8 +743,7 @@ int a6xx_preemption_init(struct adreno_device *adreno_dev)
 
 	INIT_WORK(&preempt->work, _a6xx_preemption_worker);
 
-	setup_timer(&preempt->timer, _a6xx_preemption_timer,
-		(unsigned long) adreno_dev);
+	timer_setup(&preempt->timer, _a6xx_preemption_timer, 0);
 
 	/*
 	 * Allocate a scratch buffer to keep the below table:
