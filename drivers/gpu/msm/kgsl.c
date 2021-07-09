@@ -1963,7 +1963,7 @@ static long gpuobj_free_on_timestamp(struct kgsl_device_private *dev_priv,
 
 	memset(&event, 0, sizeof(event));
 
-	ret = _copy_from_user(&event, to_user_ptr(param->priv),
+	ret = kgsl_copy_from_user(&event, to_user_ptr(param->priv),
 		sizeof(event), param->len);
 	if (ret)
 		return ret;
@@ -2010,7 +2010,7 @@ static long gpuobj_free_on_fence(struct kgsl_device_private *dev_priv,
 
 	memset(&event, 0, sizeof(event));
 
-	ret = _copy_from_user(&event, to_user_ptr(param->priv),
+	ret = kgsl_copy_from_user(&event, to_user_ptr(param->priv),
 		sizeof(event), param->len);
 	if (ret) {
 		kgsl_mem_entry_unset_pend(entry);
@@ -2350,7 +2350,7 @@ static long _gpuobj_map_useraddr(struct kgsl_device *device,
 	if (param->flags & KGSL_MEMFLAGS_SECURE)
 		return -ENOTSUPP;
 
-	ret = _copy_from_user(&useraddr,
+	ret = kgsl_copy_from_user(&useraddr,
 		to_user_ptr(param->priv), sizeof(useraddr),
 		param->priv_len);
 	if (ret)
@@ -2389,7 +2389,7 @@ static long _gpuobj_map_dma_buf(struct kgsl_device *device,
 		entry->memdesc.priv |= KGSL_MEMDESC_SECURE;
 	}
 
-	ret = _copy_from_user(&buf, to_user_ptr(param->priv),
+	ret = kgsl_copy_from_user(&buf, to_user_ptr(param->priv),
 			sizeof(buf), param->priv_len);
 	if (ret)
 		return ret;
@@ -3038,7 +3038,7 @@ long kgsl_ioctl_gpuobj_sync(struct kgsl_device_private *dev_priv,
 	ptr = to_user_ptr(param->objs);
 
 	for (i = 0; i < param->count; i++) {
-		ret = _copy_from_user(&objs[i], ptr, sizeof(*objs),
+		ret = kgsl_copy_from_user(&objs[i], ptr, sizeof(*objs),
 			param->obj_len);
 		if (ret)
 			goto out;
@@ -3889,7 +3889,7 @@ long kgsl_ioctl_sparse_bind(struct kgsl_device_private *dev_priv,
 
 	for (i = 0; i < param->count; i++) {
 		memset(&obj, 0, sizeof(obj));
-		ret = _copy_from_user(&obj, ptr, sizeof(obj), param->size);
+		ret = kgsl_copy_from_user(&obj, ptr, sizeof(obj), param->size);
 		if (ret)
 			break;
 
