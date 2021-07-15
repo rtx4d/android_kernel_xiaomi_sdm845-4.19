@@ -119,10 +119,10 @@ void kgsl_dump_syncpoints(struct kgsl_device *device,
 	}
 }
 
-static void syncobj_timer(unsigned long data)
+static void syncobj_timer(struct timer_list *t)
 {
 	struct kgsl_device *device;
-	struct kgsl_drawobj_sync *syncobj = (struct kgsl_drawobj_sync *) data;
+	struct kgsl_drawobj_sync *syncobj = from_timer(syncobj, t, timer);
 	struct kgsl_drawobj *drawobj;
 	struct kgsl_drawobj_sync_event *event;
 	unsigned int i;
@@ -751,8 +751,7 @@ struct kgsl_drawobj_sync *kgsl_drawobj_sync_create(struct kgsl_device *device,
 
 	/* Add a timer to help debug sync deadlocks */
 	if (!IS_ERR(syncobj))
-		setup_timer(&syncobj->timer, syncobj_timer,
-				(unsigned long) syncobj);
+		timer_setup(&syncobj->timer, syncobj_timer, 0);
 
 	return syncobj;
 }
@@ -1005,7 +1004,7 @@ int kgsl_drawobj_sparse_add_sparselist(struct kgsl_device *device,
 	for (i = 0; i < count; i++) {
 		memset(&obj, 0, sizeof(obj));
 
-		ret = _copy_from_user(&obj, ptr, sizeof(obj), size);
+		ret = kgsl_copy_from_user(&obj, ptr, sizeof(obj), size);
 		if (ret)
 			return ret;
 
@@ -1052,7 +1051,7 @@ int kgsl_drawobj_cmd_add_cmdlist(struct kgsl_device *device,
 	for (i = 0; i < count; i++) {
 		memset(&obj, 0, sizeof(obj));
 
-		ret = _copy_from_user(&obj, ptr, sizeof(obj), size);
+		ret = kgsl_copy_from_user(&obj, ptr, sizeof(obj), size);
 		if (ret)
 			return ret;
 
@@ -1094,7 +1093,7 @@ int kgsl_drawobj_cmd_add_memlist(struct kgsl_device *device,
 	for (i = 0; i < count; i++) {
 		memset(&obj, 0, sizeof(obj));
 
-		ret = _copy_from_user(&obj, ptr, sizeof(obj), size);
+		ret = kgsl_copy_from_user(&obj, ptr, sizeof(obj), size);
 		if (ret)
 			return ret;
 
@@ -1144,7 +1143,7 @@ int kgsl_drawobj_sync_add_synclist(struct kgsl_device *device,
 	for (i = 0; i < count; i++) {
 		memset(&syncpoint, 0, sizeof(syncpoint));
 
-		ret = _copy_from_user(&syncpoint, ptr, sizeof(syncpoint), size);
+		ret = kgsl_copy_from_user(&syncpoint, ptr, sizeof(syncpoint), size);
 		if (ret)
 			return ret;
 

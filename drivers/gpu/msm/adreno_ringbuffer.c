@@ -10,6 +10,7 @@
  * GNU General Public License for more details.
  *
  */
+#include <linux/sched/clock.h>
 #include <linux/slab.h>
 #include <linux/sched.h>
 #include <linux/log2.h>
