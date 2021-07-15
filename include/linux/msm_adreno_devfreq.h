@@ -86,7 +86,7 @@ struct msm_busmon_extended_profile {
 
 typedef void(*getbw_func)(unsigned long *, unsigned long *, void *);
 
-int devfreq_vbif_update_bw(void);
+int devfreq_vbif_update_bw(unsigned long ib, unsigned long ab);
 void devfreq_vbif_register_callback(getbw_func func, void *data);
 
 #endif
