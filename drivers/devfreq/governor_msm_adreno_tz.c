@@ -1,6 +1,14 @@
-// SPDX-License-Identifier: GPL-2.0-only
-/*
- * Copyright (c) 2010-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2017, 2019 The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
  */
 #include <linux/errno.h>
 #include <linux/module.h>
@@ -14,7 +22,6 @@
 #include <linux/msm_adreno_devfreq.h>
 #include <asm/cacheflush.h>
 #include <soc/qcom/scm.h>
-#include <soc/qcom/qtee_shmbridge.h>
 #include "governor.h"
 
 static DEFINE_SPINLOCK(tz_lock);
@@ -127,9 +134,11 @@ static ssize_t suspend_time_show(struct device *dev,
 	return snprintf(buf, PAGE_SIZE, "%llu\n", time_diff);
 }
 
-static DEVICE_ATTR_RO(gpu_load);
+static DEVICE_ATTR(gpu_load, 0444, gpu_load_show, NULL);
 
-static DEVICE_ATTR_RO(suspend_time);
+static DEVICE_ATTR(suspend_time, 0444,
+		suspend_time_show,
+		NULL);
 
 static const struct device_attribute *adreno_tz_attr_list[] = {
 		&dev_attr_gpu_load,
@@ -166,21 +175,21 @@ static int __secure_tz_reset_entry2(unsigned int *scm_data, u32 size_scm_data,
 	__iowmb();
 
 	if (!is_64) {
-		struct scm_desc desc = {
-			.args[0] = scm_data[0],
-			.args[1] = scm_data[1],
-			.arginfo = SCM_ARGS(2),
-		};
 		spin_lock(&tz_lock);
-		ret = scm_call2_atomic(SCM_SIP_FNID(SCM_SVC_IO, TZ_RESET_ID),
-			&desc);
+		ret = scm_call_atomic2(SCM_SVC_IO, TZ_RESET_ID, scm_data[0],
+					scm_data[1]);
 		spin_unlock(&tz_lock);
 	} else {
-		struct scm_desc desc = {0};
+		if (is_scm_armv8()) {
+			struct scm_desc desc = {0};
 
-		desc.arginfo = 0;
-		ret = scm_call2(SCM_SIP_FNID(SCM_SVC_DCVS,
-				 TZ_RESET_ID_64), &desc);
+			desc.arginfo = 0;
+			ret = scm_call2(SCM_SIP_FNID(SCM_SVC_DCVS,
+					 TZ_RESET_ID_64), &desc);
+		} else {
+			ret = scm_call(SCM_SVC_DCVS, TZ_RESET_ID_64, scm_data,
+				size_scm_data, NULL, 0);
+		}
 	}
 	return ret;
 }
@@ -193,37 +202,36 @@ static int __secure_tz_update_entry3(unsigned int *scm_data, u32 size_scm_data,
 	__iowmb();
 
 	if (!priv->is_64) {
-		struct scm_desc desc = {
-			.args[0] = scm_data[0],
-			.args[1] = scm_data[1],
-			.args[2] = scm_data[2],
-			.arginfo = SCM_ARGS(3),
-		};
 		spin_lock(&tz_lock);
-		ret = scm_call2_atomic(SCM_SIP_FNID(SCM_SVC_IO, TZ_UPDATE_ID),
-			&desc);
+		ret = scm_call_atomic3(SCM_SVC_IO, TZ_UPDATE_ID,
+					scm_data[0], scm_data[1], scm_data[2]);
 		spin_unlock(&tz_lock);
 		*val = ret;
 	} else {
-		unsigned int cmd_id;
-		struct scm_desc desc = {0};
+		if (is_scm_armv8()) {
+			unsigned int cmd_id;
+			struct scm_desc desc = {0};
 
-		desc.args[0] = scm_data[0];
-		desc.args[1] = scm_data[1];
-		desc.args[2] = scm_data[2];
+			desc.args[0] = scm_data[0];
+			desc.args[1] = scm_data[1];
+			desc.args[2] = scm_data[2];
 
-		if (!priv->ctxt_aware_enable) {
-			desc.arginfo = SCM_ARGS(3);
-			cmd_id =  TZ_V2_UPDATE_ID_64;
-		} else {
-			/* Add context count infomration to update*/
-			desc.args[3] = scm_data[3];
-			desc.arginfo = SCM_ARGS(4);
-			cmd_id =  TZ_V2_UPDATE_WITH_CA_ID_64;
-		}
+			if (!priv->ctxt_aware_enable) {
+				desc.arginfo = SCM_ARGS(3);
+				cmd_id =  TZ_V2_UPDATE_ID_64;
+			} else {
+				/* Add context count infomration to update*/
+				desc.args[3] = scm_data[3];
+				desc.arginfo = SCM_ARGS(4);
+				cmd_id =  TZ_V2_UPDATE_WITH_CA_ID_64;
+			}
 			ret = scm_call2(SCM_SIP_FNID(SCM_SVC_DCVS, cmd_id),
 						&desc);
 			*val = desc.ret[0];
+		} else {
+			ret = scm_call(SCM_SVC_DCVS, TZ_UPDATE_ID_64, scm_data,
+				size_scm_data, val, size_val);
+		}
 	}
 	return ret;
 }
@@ -234,25 +242,14 @@ static int tz_init_ca(struct devfreq_msm_adreno_tz_data *priv)
 	struct scm_desc desc = {0};
 	u8 *tz_buf;
 	int ret;
-	struct qtee_shm shm;
 
 	/* Set data for TZ */
 	tz_ca_data[0] = priv->bin.ctxt_aware_target_pwrlevel;
 	tz_ca_data[1] = priv->bin.ctxt_aware_busy_penalty;
 
-	if (!qtee_shmbridge_is_enabled()) {
-		tz_buf = kzalloc(PAGE_ALIGN(sizeof(tz_ca_data)), GFP_KERNEL);
-		if (!tz_buf)
-			return -ENOMEM;
-		desc.args[0] = virt_to_phys(tz_buf);
-	} else {
-		ret = qtee_shmbridge_allocate_shm(
-				PAGE_ALIGN(sizeof(tz_ca_data)), &shm);
-		if (ret)
-			return -ENOMEM;
-		tz_buf = shm.vaddr;
-		desc.args[0] = shm.paddr;
-	}
+	tz_buf = kzalloc(PAGE_ALIGN(sizeof(tz_ca_data)), GFP_KERNEL);
+	if (!tz_buf)
+		return -ENOMEM;
 
 	memcpy(tz_buf, tz_ca_data, sizeof(tz_ca_data));
 	/* Ensure memcpy completes execution */
@@ -260,16 +257,15 @@ static int tz_init_ca(struct devfreq_msm_adreno_tz_data *priv)
 	dmac_flush_range(tz_buf,
 		tz_buf + PAGE_ALIGN(sizeof(tz_ca_data)));
 
+	desc.args[0] = virt_to_phys(tz_buf);
 	desc.args[1] = sizeof(tz_ca_data);
 	desc.arginfo = SCM_ARGS(2, SCM_RW, SCM_VAL);
 
 	ret = scm_call2(SCM_SIP_FNID(SCM_SVC_DCVS,
 			TZ_V2_INIT_CA_ID_64),
 			&desc);
-	if (!qtee_shmbridge_is_enabled())
-		kzfree(tz_buf);
-	else
-		qtee_shmbridge_free_shm(&shm);
+
+	kzfree(tz_buf);
 
 	return ret;
 }
@@ -280,33 +276,35 @@ static int tz_init(struct devfreq_msm_adreno_tz_data *priv,
 {
 	int ret;
 	/* Make sure all CMD IDs are avaialble */
-	if (scm_is_call_available(SCM_SVC_DCVS, TZ_INIT_ID_64) &&
+	if (scm_is_call_available(SCM_SVC_DCVS, TZ_INIT_ID)) {
+		ret = scm_call(SCM_SVC_DCVS, TZ_INIT_ID, tz_pwrlevels,
+				size_pwrlevels, NULL, 0);
+		*version = 0;
+
+	} else if (scm_is_call_available(SCM_SVC_DCVS, TZ_INIT_ID_64) &&
 			scm_is_call_available(SCM_SVC_DCVS, TZ_UPDATE_ID_64) &&
 			scm_is_call_available(SCM_SVC_DCVS, TZ_RESET_ID_64)) {
 		struct scm_desc desc = {0};
 		u8 *tz_buf;
-		struct qtee_shm shm;
 
-		if (!qtee_shmbridge_is_enabled()) {
-			tz_buf = kzalloc(PAGE_ALIGN(size_pwrlevels),
-						GFP_KERNEL);
-			if (!tz_buf)
-				return -ENOMEM;
-			desc.args[0] = virt_to_phys(tz_buf);
-		} else {
-			ret = qtee_shmbridge_allocate_shm(
-					PAGE_ALIGN(size_pwrlevels), &shm);
-			if (ret)
-				return -ENOMEM;
-			tz_buf = shm.vaddr;
-			desc.args[0] = shm.paddr;
+		if (!is_scm_armv8()) {
+			ret = scm_call(SCM_SVC_DCVS, TZ_INIT_ID_64,
+				       tz_pwrlevels, size_pwrlevels,
+				       version, size_version);
+			if (!ret)
+				priv->is_64 = true;
+			return ret;
 		}
 
+		tz_buf = kzalloc(PAGE_ALIGN(size_pwrlevels), GFP_KERNEL);
+		if (!tz_buf)
+			return -ENOMEM;
 		memcpy(tz_buf, tz_pwrlevels, size_pwrlevels);
 		/* Ensure memcpy completes execution */
 		mb();
 		dmac_flush_range(tz_buf, tz_buf + PAGE_ALIGN(size_pwrlevels));
 
+		desc.args[0] = virt_to_phys(tz_buf);
 		desc.args[1] = size_pwrlevels;
 		desc.arginfo = SCM_ARGS(2, SCM_RW, SCM_VAL);
 
@@ -315,10 +313,7 @@ static int tz_init(struct devfreq_msm_adreno_tz_data *priv,
 		*version = desc.ret[0];
 		if (!ret)
 			priv->is_64 = true;
-		if (!qtee_shmbridge_is_enabled())
-			kzfree(tz_buf);
-		else
-			qtee_shmbridge_free_shm(&shm);
+		kzfree(tz_buf);
 	} else
 		ret = -EINVAL;
 
@@ -331,7 +326,7 @@ static int tz_init(struct devfreq_msm_adreno_tz_data *priv,
 				TZ_V2_UPDATE_WITH_CA_ID_64))) {
 			ret = tz_init_ca(priv);
 			/*
-			 * If context aware feature initialization fails,
+			 * If context aware feature intialization fails,
 			 * just print an error message and return
 			 * success as normal DCVS will still work.
 			 */
@@ -355,8 +350,8 @@ static inline int devfreq_get_freq_level(struct devfreq *devfreq,
 	int lev;
 
 	for (lev = 0; lev < devfreq->profile->max_state; lev++)
-		if (freq == devfreq->profile->freq_table[lev])
-			return lev;
+	if (freq == devfreq->profile->freq_table[lev])
+		return lev;
 
 	return -EINVAL;
 }
@@ -365,42 +360,42 @@ static int tz_get_target_freq(struct devfreq *devfreq, unsigned long *freq)
 {
 	int result = 0;
 	struct devfreq_msm_adreno_tz_data *priv = devfreq->data;
-	struct devfreq_dev_status *stats = &devfreq->last_status;
+	struct devfreq_dev_status stats;
 	int val, level = 0;
 	unsigned int scm_data[4];
 	int context_count = 0;
 
 	/* keeps stats.private_data == NULL   */
-	result = devfreq_update_stats(devfreq);
+	result = devfreq->profile->get_dev_status(devfreq->dev.parent, &stats);
 	if (result) {
 		pr_err(TAG "get_status failed %d\n", result);
 		return result;
 	}
 
-	*freq = stats->current_frequency;
-	priv->bin.total_time += stats->total_time;
-	priv->bin.busy_time += stats->busy_time;
+	*freq = stats.current_frequency;
+	priv->bin.total_time += stats.total_time;
+	priv->bin.busy_time += stats.busy_time;
 
-	if (stats->private_data)
-		context_count =  *((int *)stats->private_data);
+	if (stats.private_data)
+		context_count =  *((int *)stats.private_data);
 
 	/* Update the GPU load statistics */
-	compute_work_load(stats, priv, devfreq);
+	compute_work_load(&stats, priv, devfreq);
 	/*
 	 * Do not waste CPU cycles running this algorithm if
 	 * the GPU just started, or if less than FLOOR time
 	 * has passed since the last run or the gpu hasn't been
 	 * busier than MIN_BUSY.
 	 */
-	if ((stats->total_time == 0) ||
+	if ((stats.total_time == 0) ||
 		(priv->bin.total_time < FLOOR) ||
 		(unsigned int) priv->bin.busy_time < MIN_BUSY) {
 		return 0;
 	}
 
-	level = devfreq_get_freq_level(devfreq, stats->current_frequency);
+	level = devfreq_get_freq_level(devfreq, stats.current_frequency);
 	if (level < 0) {
-		pr_err(TAG "bad freq %ld\n", stats->current_frequency);
+		pr_err(TAG "bad freq %ld\n", stats.current_frequency);
 		return level;
 	}
 
@@ -469,14 +464,11 @@ static int tz_start(struct devfreq *devfreq)
 	unsigned int tz_pwrlevels[MSM_ADRENO_MAX_PWRLEVELS + 1];
 	int i, out, ret;
 	unsigned int version;
-	struct msm_adreno_extended_profile *gpu_profile;
 
-	if (partner_gpu_profile)
-		return -EEXIST;
-
-	gpu_profile = container_of(devfreq->profile,
-			struct msm_adreno_extended_profile,
-			profile);
+	struct msm_adreno_extended_profile *gpu_profile = container_of(
+					(devfreq->profile),
+					struct msm_adreno_extended_profile,
+					profile);
 
 	/*
 	 * Assuming that we have only one instance of the adreno device
@@ -497,7 +489,6 @@ static int tz_start(struct devfreq *devfreq)
 		tz_pwrlevels[0] = i;
 	} else {
 		pr_err(TAG "tz_pwrlevels[] is too short\n");
-		partner_gpu_profile = NULL;
 		return -EINVAL;
 	}
 
@@ -514,7 +505,6 @@ static int tz_start(struct devfreq *devfreq)
 				sizeof(version));
 	if (ret != 0 || version > MAX_TZ_VERSION) {
 		pr_err(TAG "tz_init failed\n");
-		partner_gpu_profile = NULL;
 		return ret;
 	}
 
@@ -603,7 +593,7 @@ static int tz_handler(struct devfreq *devfreq, unsigned int event, void *data)
 		break;
 	}
 
-	if (!result && partner_gpu_profile && partner_gpu_profile->bus_devfreq)
+	if (partner_gpu_profile && partner_gpu_profile->bus_devfreq)
 		switch (event) {
 		case DEVFREQ_GOV_START:
 			queue_work(workqueue,
@@ -689,3 +679,4 @@ static void __exit msm_adreno_tz_exit(void)
 module_exit(msm_adreno_tz_exit);
 
 MODULE_LICENSE("GPL v2");
+
