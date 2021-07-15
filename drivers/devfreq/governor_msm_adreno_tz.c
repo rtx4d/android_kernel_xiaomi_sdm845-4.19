@@ -175,21 +175,21 @@ static int __secure_tz_reset_entry2(unsigned int *scm_data, u32 size_scm_data,
 	__iowmb();
 
 	if (!is_64) {
+		struct scm_desc desc = {
+			.args[0] = scm_data[0],
+			.args[1] = scm_data[1],
+			.arginfo = SCM_ARGS(2),
+		};
 		spin_lock(&tz_lock);
-		ret = scm_call_atomic2(SCM_SVC_IO, TZ_RESET_ID, scm_data[0],
-					scm_data[1]);
+		ret = scm_call2_atomic(SCM_SIP_FNID(SCM_SVC_IO, TZ_RESET_ID),
+			&desc);
 		spin_unlock(&tz_lock);
 	} else {
-		if (is_scm_armv8()) {
-			struct scm_desc desc = {0};
+		struct scm_desc desc = {0};
 
-			desc.arginfo = 0;
-			ret = scm_call2(SCM_SIP_FNID(SCM_SVC_DCVS,
-					 TZ_RESET_ID_64), &desc);
-		} else {
-			ret = scm_call(SCM_SVC_DCVS, TZ_RESET_ID_64, scm_data,
-				size_scm_data, NULL, 0);
-		}
+		desc.arginfo = 0;
+		ret = scm_call2(SCM_SIP_FNID(SCM_SVC_DCVS,
+				 TZ_RESET_ID_64), &desc);
 	}
 	return ret;
 }
@@ -202,36 +202,37 @@ static int __secure_tz_update_entry3(unsigned int *scm_data, u32 size_scm_data,
 	__iowmb();
 
 	if (!priv->is_64) {
+		struct scm_desc desc = {
+			.args[0] = scm_data[0],
+			.args[1] = scm_data[1],
+			.args[2] = scm_data[2],
+			.arginfo = SCM_ARGS(3),
+		};
 		spin_lock(&tz_lock);
-		ret = scm_call_atomic3(SCM_SVC_IO, TZ_UPDATE_ID,
-					scm_data[0], scm_data[1], scm_data[2]);
+		ret = scm_call2_atomic(SCM_SIP_FNID(SCM_SVC_IO, TZ_UPDATE_ID),
+			&desc);
 		spin_unlock(&tz_lock);
 		*val = ret;
 	} else {
-		if (is_scm_armv8()) {
-			unsigned int cmd_id;
-			struct scm_desc desc = {0};
+		unsigned int cmd_id;
+		struct scm_desc desc = {0};
 
-			desc.args[0] = scm_data[0];
-			desc.args[1] = scm_data[1];
-			desc.args[2] = scm_data[2];
+		desc.args[0] = scm_data[0];
+		desc.args[1] = scm_data[1];
+		desc.args[2] = scm_data[2];
 
-			if (!priv->ctxt_aware_enable) {
-				desc.arginfo = SCM_ARGS(3);
-				cmd_id =  TZ_V2_UPDATE_ID_64;
-			} else {
-				/* Add context count infomration to update*/
-				desc.args[3] = scm_data[3];
-				desc.arginfo = SCM_ARGS(4);
-				cmd_id =  TZ_V2_UPDATE_WITH_CA_ID_64;
-			}
+		if (!priv->ctxt_aware_enable) {
+			desc.arginfo = SCM_ARGS(3);
+			cmd_id =  TZ_V2_UPDATE_ID_64;
+		} else {
+			/* Add context count infomration to update*/
+			desc.args[3] = scm_data[3];
+			desc.arginfo = SCM_ARGS(4);
+			cmd_id =  TZ_V2_UPDATE_WITH_CA_ID_64;
+		}
 			ret = scm_call2(SCM_SIP_FNID(SCM_SVC_DCVS, cmd_id),
 						&desc);
 			*val = desc.ret[0];
-		} else {
-			ret = scm_call(SCM_SVC_DCVS, TZ_UPDATE_ID_64, scm_data,
-				size_scm_data, val, size_val);
-		}
 	}
 	return ret;
 }
@@ -276,25 +277,11 @@ static int tz_init(struct devfreq_msm_adreno_tz_data *priv,
 {
 	int ret;
 	/* Make sure all CMD IDs are avaialble */
-	if (scm_is_call_available(SCM_SVC_DCVS, TZ_INIT_ID)) {
-		ret = scm_call(SCM_SVC_DCVS, TZ_INIT_ID, tz_pwrlevels,
-				size_pwrlevels, NULL, 0);
-		*version = 0;
-
-	} else if (scm_is_call_available(SCM_SVC_DCVS, TZ_INIT_ID_64) &&
+	if (scm_is_call_available(SCM_SVC_DCVS, TZ_INIT_ID_64) &&
 			scm_is_call_available(SCM_SVC_DCVS, TZ_UPDATE_ID_64) &&
 			scm_is_call_available(SCM_SVC_DCVS, TZ_RESET_ID_64)) {
 		struct scm_desc desc = {0};
 		u8 *tz_buf;
-
-		if (!is_scm_armv8()) {
-			ret = scm_call(SCM_SVC_DCVS, TZ_INIT_ID_64,
-				       tz_pwrlevels, size_pwrlevels,
-				       version, size_version);
-			if (!ret)
-				priv->is_64 = true;
-			return ret;
-		}
 
 		tz_buf = kzalloc(PAGE_ALIGN(size_pwrlevels), GFP_KERNEL);
 		if (!tz_buf)
@@ -326,7 +313,7 @@ static int tz_init(struct devfreq_msm_adreno_tz_data *priv,
 				TZ_V2_UPDATE_WITH_CA_ID_64))) {
 			ret = tz_init_ca(priv);
 			/*
-			 * If context aware feature intialization fails,
+			 * If context aware feature initialization fails,
 			 * just print an error message and return
 			 * success as normal DCVS will still work.
 			 */
