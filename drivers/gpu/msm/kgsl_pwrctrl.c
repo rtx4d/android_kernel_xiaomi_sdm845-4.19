@@ -118,10 +118,9 @@ static void _record_pwrevent(struct kgsl_device *device,
 /**
  * kgsl_get_bw() - Return latest msm bus IB vote
  */
-static void kgsl_get_bw(unsigned long *ib, unsigned long *ab, void *data)
+static unsigned long kgsl_get_bw(void)
 {
-	*ib = ib_votes[last_vote_buslevel];
-	*ab = 0;
+	return ib_votes[last_vote_buslevel];
 }
 #endif
 
@@ -1986,13 +1985,15 @@ static void kgsl_thermal_timer(struct timer_list *t)
 }
 
 #ifdef CONFIG_DEVFREQ_GOV_QCOM_GPUBW_MON
-static void kgsl_pwrctrl_vbif_init(struct kgsl_device *device)
+static int kgsl_pwrctrl_vbif_init(void)
 {
-	devfreq_vbif_register_callback(kgsl_get_bw, device);
+	devfreq_vbif_register_callback(kgsl_get_bw);
+	return 0;
 }
 #else
-static void kgsl_pwrctrl_vbif_init(struct kgsl_device *device)
+static int kgsl_pwrctrl_vbif_init(void)
 {
+	return 0;
 }
 #endif
 
@@ -2422,7 +2423,7 @@ int kgsl_pwrctrl_init(struct kgsl_device *device)
 
 	pwr->sysfs_pwr_limit = kgsl_pwr_limits_add(KGSL_DEVICE_3D0);
 
-	kgsl_pwrctrl_vbif_init(device);
+	kgsl_pwrctrl_vbif_init();
 
 	return result;
 

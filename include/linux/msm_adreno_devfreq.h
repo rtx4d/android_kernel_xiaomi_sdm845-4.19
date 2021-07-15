@@ -84,9 +84,9 @@ struct msm_busmon_extended_profile {
 	struct devfreq_dev_profile profile;
 };
 
-typedef void(*getbw_func)(unsigned long *, unsigned long *, void *);
-
+#ifdef CONFIG_DEVFREQ_GOV_QCOM_GPUBW_MON
 int devfreq_vbif_update_bw(unsigned long ib, unsigned long ab);
-void devfreq_vbif_register_callback(getbw_func func, void *data);
+int devfreq_vbif_register_callback(void *callback);
+#endif
 
 #endif
