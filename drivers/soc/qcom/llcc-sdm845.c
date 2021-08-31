@@ -39,9 +39,8 @@
  *               collapse.
  * activate_on_init: Activate the slice immidiately after the SCT is programmed
  */
-#define SCT_ENTRY(n, uid, sid, mc, p, fs, bway, rway, cmod, ptw, dca, rp, a) \
+#define SCT_ENTRY(uid, sid, mc, p, fs, bway, rway, cmod, ptw, dca, rp, a) \
 	{					\
-		.name = n,			\
 		.usecase_id = uid,		\
 		.slice_id = sid,		\
 		.max_cap = mc,			\
@@ -53,28 +52,28 @@
 		.probe_target_ways = ptw,	\
 		.dis_cap_alloc = dca,		\
 		.retain_on_pc = rp,		\
-		.activate_on_init = a,		\
+		.activate_on_init = a, \
 	}
 
 static struct llcc_slice_config sdm845_data[] =  {
-	SCT_ENTRY("cpuss",       1, 1, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 1),
-	SCT_ENTRY("vidsc0",      2, 2, 512, 2, 1, 0x0,  0x0F0, 0, 0, 1, 1, 0),
-	SCT_ENTRY("vidsc1",      3, 3, 512, 2, 1, 0x0,  0x0F0, 0, 0, 1, 1, 0),
-	SCT_ENTRY("rotator",     4, 4, 563, 2, 1, 0x0,  0x00e, 2, 0, 1, 1, 0),
-	SCT_ENTRY("voice",       5, 5, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("audio",       6, 6, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("modemhp_grow", 7, 7, 1024, 2, 0, 0x0FC, 0xF00, 0, 0, 1, 1, 0),
-	SCT_ENTRY("modem",       8, 8, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("compute",     10, 10, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("gpuhtw",      11, 11, 512, 1, 1, 0xC,  0x0, 0, 0, 1, 1, 0),
-	SCT_ENTRY("gpu",         12, 12, 2304, 1, 0, 0xFF0, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("mmuhwt",      13, 13, 256, 2, 0, 0x0,  0x1, 0, 0, 1, 0, 1),
-	SCT_ENTRY("compute_dma", 15, 15, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("display",     16, 16, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("videofw",     17, 17, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
-	SCT_ENTRY("modemhp_fix", 20, 20, 1024, 2, 1, 0x0,  0xF00, 0, 0, 1, 1, 0),
-	SCT_ENTRY("modem_paging", 21, 21, 1024, 0, 1, 0x1e, 0x0, 0, 0, 1, 1, 0),
-	SCT_ENTRY("audiohw",     22, 22, 1024, 1, 1, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(1, 1, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 1),
+	SCT_ENTRY(2, 2, 512, 2, 1, 0x0,  0x0F0, 0, 0, 1, 1, 0),
+	SCT_ENTRY(3, 3, 512, 2, 1, 0x0,  0x0F0, 0, 0, 1, 1, 0),
+	SCT_ENTRY(4, 4, 563, 2, 1, 0x0,  0x00e, 2, 0, 1, 1, 0),
+	SCT_ENTRY(5, 5, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(6, 6, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(7, 7, 1024, 2, 0, 0x0FC, 0xF00, 0, 0, 1, 1, 0),
+	SCT_ENTRY(8, 8, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(10, 10, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(11, 11, 512, 1, 1, 0xC,  0x0, 0, 0, 1, 1, 0),
+	SCT_ENTRY(12, 12, 2304, 1, 0, 0xFF0, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(13, 13, 256, 2, 0, 0x0,  0x1, 0, 0, 1, 0, 1),
+	SCT_ENTRY(15, 15, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(16, 16, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(17, 17, 2816, 1, 0, 0xFFC, 0x2, 0, 0, 1, 1, 0),
+	SCT_ENTRY(20, 20, 1024, 2, 1, 0x0,  0xF00, 0, 0, 1, 1, 0),
+	SCT_ENTRY(21, 21, 1024, 0, 1, 0x1e, 0x0, 0, 0, 1, 1, 0),
+	SCT_ENTRY(22, 22, 1024, 1, 1, 0xFFC, 0x2, 0, 0, 1, 1, 0),
 };
 
 static int sdm845_qcom_llcc_probe(struct platform_device *pdev)
@@ -95,7 +94,6 @@ static struct platform_driver sdm845_qcom_llcc_driver = {
 		.of_match_table = sdm845_qcom_llcc_of_match,
 	},
 	.probe = sdm845_qcom_llcc_probe,
-	.remove = qcom_llcc_remove,
 };
 
 static int __init sdm845_init_qcom_llcc_init(void)
