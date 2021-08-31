@@ -183,10 +183,10 @@ static irqreturn_t sim_detect_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-static void sim_detect_det_tmr_func(unsigned long func_data)
+static void sim_detect_det_tmr_func(struct timer_list *t)
 {
 	struct sim_detect_event_data *edata =
-		(struct sim_detect_event_data *)func_data;
+		from_timer(edata, t, det_timer);
 
 	schedule_work(&edata->det_work);
 }
@@ -290,8 +290,7 @@ static int sim_detect_setup_event(struct platform_device *pdev,
 
 	INIT_WORK(&edata->det_work, sim_detect_det_work);
 
-	setup_timer(&edata->det_timer,
-		    sim_detect_det_tmr_func, (unsigned long)edata);
+	timer_setup(&edata->det_timer, sim_detect_det_tmr_func, 0);
 
 	error = request_any_context_irq(edata->irq, isr, irqflags, desc, edata);
 	if (error < 0) {
