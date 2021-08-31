@@ -6,6 +6,7 @@
 #ifndef __LINUX_USB_USBPD_H
 #define __LINUX_USB_USBPD_H
 
+#include <linux/err.h>
 #include <linux/list.h>
 
 struct usbpd;
