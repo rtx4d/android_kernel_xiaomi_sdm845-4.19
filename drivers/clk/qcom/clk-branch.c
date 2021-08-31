@@ -461,6 +461,73 @@ const struct clk_ops clk_branch2_hw_ctl_ops = {
 };
 EXPORT_SYMBOL_GPL(clk_branch2_hw_ctl_ops);
 
+static int clk_gate_toggle(struct clk_hw *hw, bool en)
+{
+	struct clk_gate2 *gt = to_clk_gate2(hw);
+	int ret = 0;
+
+	if (en) {
+		ret = clk_enable_regmap(hw);
+		if (ret)
+			return ret;
+	} else {
+		clk_disable_regmap(hw);
+	}
+
+	if (gt->udelay)
+		udelay(gt->udelay);
+
+	return ret;
+}
+
+static int clk_gate2_enable(struct clk_hw *hw)
+{
+	return clk_gate_toggle(hw, true);
+}
+
+static void clk_gate2_disable(struct clk_hw *hw)
+{
+	clk_gate_toggle(hw, false);
+}
+
+static void clk_gate2_list_registers(struct seq_file *f, struct clk_hw *hw)
+{
+	struct clk_gate2 *gt = to_clk_gate2(hw);
+	int size, i, val;
+
+	static struct clk_register_data data[] = {
+		{"EN_REG", 0x0},
+	};
+
+	size = ARRAY_SIZE(data);
+
+	for (i = 0; i < size; i++) {
+		regmap_read(gt->clkr.regmap, gt->clkr.enable_reg +
+					data[i].offset, &val);
+		clock_debug_output(f, false, "%20s: 0x%.8x\n",
+						data[i].name, val);
+	}
+}
+
+static int clk_gate2_set_flags(struct clk_hw *hw, unsigned flags)
+{
+	struct clk_gate2 *gt = to_clk_gate2(hw);
+
+	return clk_cbcr_set_flags(gt->clkr.regmap, gt->clkr.enable_reg,
+					flags);
+}
+
+const struct clk_ops clk_gate2_ops = {
+	.enable = clk_gate2_enable,
+	.disable = clk_gate2_disable,
+	.is_enabled = clk_is_enabled_regmap,
+	.list_registers = clk_gate2_list_registers,
+	.set_flags = clk_gate2_set_flags,
+	.debug_init = clk_debug_measure_add,
+	.bus_vote = clk_debug_bus_vote,
+};
+EXPORT_SYMBOL_GPL(clk_gate2_ops);
+
 const struct clk_ops clk_branch_simple_ops = {
 	.enable = clk_enable_regmap,
 	.disable = clk_disable_regmap,
