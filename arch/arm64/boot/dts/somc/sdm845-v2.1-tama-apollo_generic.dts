@@ -20,8 +20,8 @@
 /dts-v1/;
 
 #include "sdm845-v2.1.dtsi"
-#include "sdm845-sde-display.dtsi"
-#include "sdm845-mtp.dtsi"
+#include "../qcom/sdm845-sde-display.dtsi"
+#include "../qcom/sdm845-mtp.dtsi"
 #include "sdm845-tama-apollo_generic.dtsi"
 
 / {

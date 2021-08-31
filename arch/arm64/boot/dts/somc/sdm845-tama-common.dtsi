@@ -16,7 +16,7 @@
  */
 
 /* Disable SMP2P Remote Debug for production */
-#include "msm-rdbg-disable.dtsi"
+#include "../qcom/msm-rdbg-disable.dtsi"
 
 &reserved_mem {
 	debug_region: debug_region@ffb00000 {
