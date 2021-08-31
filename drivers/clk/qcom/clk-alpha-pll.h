@@ -7,6 +7,9 @@
 #include <linux/clk-provider.h>
 #include "clk-regmap.h"
 
+#define ALPHA_POST_DIV_EVEN_SHIFT      8
+#define ALPHA_POST_DIV_ODD_SHIFT       12
+
 /* Alpha PLL types */
 enum {
 	CLK_ALPHA_PLL_TYPE_DEFAULT,
@@ -39,6 +42,30 @@ enum {
 	PLL_OFF_FRAC,
 	PLL_OFF_CAL_VAL,
 	PLL_OFF_MAX_REGS
+};
+
+static const struct clk_div_table clk_alpha_div_table[] = {
+	{ 0x0, 1 },
+	{ 0x1, 2 },
+	{ 0x3, 4 },
+	{ 0x7, 8 },
+	{ 0xf, 16 },
+	{ }
+};
+
+static const struct clk_div_table clk_alpha_odd_div_table[] = {
+        { 0x0, 1 },
+        { 0x3, 3 },
+        { 0x5, 5 },
+        { 0x7, 7 },
+        { }
+};
+
+static const struct clk_div_table clk_alpha_2bit_div_table[] = {
+	{ 0x0, 1 },
+	{ 0x1, 2 },
+	{ 0x3, 4 },
+	{ }
 };
 
 extern const u8 clk_alpha_pll_regs[CLK_ALPHA_PLL_TYPE_MAX][PLL_OFF_MAX_REGS];
