@@ -31,7 +31,7 @@
 #include <linux/switch.h>
 #endif
 #include <linux/types.h>
-#include "bu520x1nvx.h"
+#include <linux/input/bu520x1nvx.h>
 
 #define BU520X1NVX_DEV_NAME "bu520x1nvx"
 #define BU520X1NVX_SW_LID_NAME "lid"
@@ -218,15 +218,6 @@ static irqreturn_t bu520x1nvx_isr(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
-#ifndef CONFIG_HALL_SENSOR_NOT_USE_SETUP_TIMER
-static void bu520x1nvx_det_tmr_func(unsigned long func_data)
-{
-	struct bu520x1nvx_event_data *edata =
-		(struct bu520x1nvx_event_data *)func_data;
-
-	schedule_work(&edata->det_work);
-}
-#else
 static void bu520x1nvx_det_tmr_func(struct timer_list *t)
 {
 	struct bu520x1nvx_event_data *edata =
@@ -234,7 +225,6 @@ static void bu520x1nvx_det_tmr_func(struct timer_list *t)
 
 	schedule_work(&edata->det_work);
 }
-#endif
 
 static void bu520x1nvx_det_work(struct work_struct *work)
 {
@@ -362,13 +352,9 @@ static int bu520x1nvx_setup_event(struct platform_device *pdev,
 	irqflags = IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING;
 
 	INIT_WORK(&edata->det_work, bu520x1nvx_det_work);
-#ifndef CONFIG_HALL_SENSOR_NOT_USE_SETUP_TIMER
-	setup_timer(&edata->det_timer,
-		    bu520x1nvx_det_tmr_func, (unsigned long)edata);
-#else
+
 	timer_setup(&edata->det_timer,
 		    bu520x1nvx_det_tmr_func, 0);
-#endif
 
 	error = request_any_context_irq(edata->irq, isr, irqflags, desc, edata);
 	if (error < 0) {
