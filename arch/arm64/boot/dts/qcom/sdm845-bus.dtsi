@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  */
 
-#include <dt-bindings/msm/msm-bus-ids.h>
+#include <dt-bindings/msm/msm-bus-ids-845.h>
 #include <dt-bindings/soc/qcom,rpmh-rsc.h>
 #include <dt-bindings/clock/qcom,gcc-sdm845.h>
 
@@ -34,9 +34,6 @@
 			"gladiator_noc-base", "mc_virt-base", "mem_noc-base",
 			"mmss_noc-base", "system_noc-base", "ipa_virt-base",
 			"camnoc_virt-base";
-
-		mbox-names = "apps_rsc", "disp_rsc";
-		mboxes = <&apps_rsc 0 &disp_rsc 0>;
 
 	/*RSCs*/
 		rsc_apps: rsc-apps {
@@ -378,6 +375,9 @@
 			label = "fab-camnoc_virt";
 			qcom,fab-dev;
 			qcom,base-name = "camnoc_virt-base";
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			qcom,bypass-qos-prg;
 			clocks = <>;
 		};
@@ -388,6 +388,9 @@
 			qcom,fab-dev;
 			qcom,base-name = "config_noc-base";
 			qcom,bypass-qos-prg;
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -398,6 +401,9 @@
 			qcom,fab-dev;
 			qcom,base-name = "dc_noc-base";
 			qcom,bypass-qos-prg;
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -408,6 +414,9 @@
 			qcom,fab-dev;
 			qcom,base-name = "gladiator_noc-base";
 			qcom,bypass-qos-prg;
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
@@ -418,6 +427,9 @@
 			qcom,fab-dev;
 			qcom,base-name = "ipa_virt-base";
 			qcom,bypass-qos-prg;
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			clocks = <>;
 		};
 
@@ -427,6 +439,9 @@
 			qcom,fab-dev;
 			qcom,base-name = "mc_virt-base";
 			qcom,bypass-qos-prg;
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			clocks = <>;
 		};
 
@@ -469,6 +484,9 @@
 			qcom,fab-dev;
 			qcom,base-name = "mc_virt-base";
 			qcom,bypass-qos-prg;
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			clocks = <>;
 		};
 
@@ -490,6 +508,9 @@
 			qcom,fab-dev;
 			qcom,base-name = "mmss_noc-base";
 			qcom,bypass-qos-prg;
+			qcom,qos-off = <0>;
+			qcom,base-offset = <0>;
+			qcom,sbm-offset = <0>;
 			qcom,bus-type = <1>;
 			clocks = <>;
 		};
