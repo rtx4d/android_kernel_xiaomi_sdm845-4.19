@@ -20,7 +20,7 @@
 
 /dts-v1/;
 
-#include "sdm845-v2.dtsi"
+#include "../qcom/sdm845-v2.dtsi"
 #include "../qcom/sdm845-sde-display.dtsi"
 #include "../qcom/sdm845-mtp.dtsi"
 #include "sdm845-tama-akari_generic.dtsi"
