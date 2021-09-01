@@ -7,7 +7,7 @@
 #define __QCOM_RPMH_REGULATOR_LEVELS_H
 
 /* These levels may be used for ARC type RPMh regulators. */
-#define RPMH_REGULATOR_LEVEL_OFF	0
+#define RPMH_REGULATOR_LEVEL_OFF	16 /* Hack for sdm845 on 4.19 */
 #define RPMH_REGULATOR_LEVEL_RETENTION	16
 #define RPMH_REGULATOR_LEVEL_MIN_SVS	48
 #define RPMH_REGULATOR_LEVEL_LOW_SVS	64

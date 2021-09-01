@@ -376,12 +376,6 @@
 			"SpkrRight IN", "SPK2 OUT";
 	};
 
-	rpmh-regulator-ldoa14 {
-		pm8998_l14: regulator-l14 {
-			qcom,proxy-consumer-voltage = <1800000>;
-		};
-	};
-
 	/delete-node/ qcom,qbt1000;
 };
 
