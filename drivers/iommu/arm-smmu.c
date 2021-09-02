@@ -4820,7 +4820,9 @@ static void qsmmuv2_init_cb(struct arm_smmu_domain *smmu_domain,
 struct arm_smmu_arch_ops qsmmuv2_arch_ops = {
 	.device_reset = qsmmuv2_device_reset,
 	.iova_to_phys_hard = qsmmuv2_iova_to_phys_hard,
+#if !defined(CONFIG_ARCH_SDM845)
 	.init_context_bank = qsmmuv2_init_cb,
+#endif
 };
 
 
