@@ -41,10 +41,6 @@
 		interrupts = <GIC_SPI 83 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-controller;
 		#interrupt-cells = <1>;
-		iommus = <&apps_smmu 0x880 0x8>,
-			<&apps_smmu 0xc80 0x8>;
-
-		#power-domain-cells = <0>;
 
 		/* hw blocks */
 		qcom,sde-off = <0x1000>;
