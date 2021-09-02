@@ -917,7 +917,7 @@
 		reg = <0x1f40000 0x20000>;
 	};
 
-	tcsr_mutex: hwlock@1f40000 {
+	tcsr_mutex: hwlock {
 		compatible = "qcom,tcsr-mutex";
 		syscon = <&tcsr_mutex_block 0 0x1000>;
 		#hwlock-cells = <1>;
