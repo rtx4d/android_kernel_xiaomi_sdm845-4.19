@@ -426,20 +426,26 @@ static int getpath(struct device *src_dev, int dest, const char *cl_name)
 
 		/* Setup the new edge list */
 		list_for_each_entry(bus_node, &traverse_list, link) {
+
 			for (i = 0; i < bus_node->node_info->num_connections;
 									i++) {
-				bool skip;
+				bool skip = false;
 				struct msm_bus_node_device_type
 						*node_conn;
 				node_conn =
 				to_msm_bus_node(
 				bus_node->node_info->dev_connections[i]);
-				if (node_conn->node_info->is_traversed) {
+				if (node_conn->node_info->is_traversed &&
+				    node_conn->node_info->num_connections) {
 					MSM_BUS_ERR("Circ Path %d\n",
 					node_conn->node_info->id);
 					goto reset_traversed;
 				}
-				skip = chk_bl_list(&black_list,
+				if (node_conn->node_info->is_traversed &&
+				    !node_conn->node_info->num_connections)
+					skip = true;
+
+				skip |= chk_bl_list(&black_list,
 					bus_node->node_info->connections[i]);
 				if (!skip) {
 					list_add_tail(&node_conn->link,
@@ -453,7 +459,8 @@ static int getpath(struct device *src_dev, int dest, const char *cl_name)
 		search_node = kzalloc(sizeof(struct bus_search_type),
 				 GFP_KERNEL);
 		if (!search_node)
-			return -ENOMEM;
+			goto exit_getpath;
+
 		INIT_LIST_HEAD(&search_node->node_list);
 		list_splice_init(&traverse_list,
 				 &search_node->node_list);
