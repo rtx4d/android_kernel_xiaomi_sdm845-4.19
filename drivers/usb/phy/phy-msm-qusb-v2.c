@@ -88,8 +88,10 @@ enum qusb_phy_reg {
 	BIAS_CTRL_2,
 	DEBUG_CTRL1,
 	DEBUG_CTRL2,
+#if !defined(CONFIG_ARCH_SDM845)
 	DEBUG_CTRL3,
 	DEBUG_CTRL4,
+#endif
 	STAT5,
 	USB2_PHY_REG_MAX,
 };
@@ -197,7 +199,7 @@ static int qusb_phy_disable_power(struct qusb_phy *qphy)
 
 	dev_dbg(qphy->phy.dev, "%s:req to turn off regulators\n",
 			__func__);
-
+#if !defined(CONFIG_ARCH_SDM845)
 	ret = regulator_disable(qphy->refgen);
 	if (ret)
 		dev_err(qphy->phy.dev, "Unable to disable refgen:%d\n", ret);
@@ -215,7 +217,7 @@ static int qusb_phy_disable_power(struct qusb_phy *qphy)
 			dev_err(qphy->phy.dev,
 					"Unable to set (0) HPM of refgen\n");
 	}
-
+#endif
 	ret = regulator_disable(qphy->vdda33);
 	if (ret)
 		dev_err(qphy->phy.dev, "Unable to disable vdda33:%d\n", ret);
@@ -332,6 +334,7 @@ static int qusb_phy_enable_power(struct qusb_phy *qphy)
 		goto unset_vdd33;
 	}
 
+#if !defined(CONFIG_ARCH_SDM845)
 	ret = regulator_set_load(qphy->refgen, QUSB2PHY_REFGEN_HPM_LOAD);
 	if (ret < 0) {
 		dev_err(qphy->phy.dev, "Unable to set HPM of refgen:%d\n", ret);
@@ -351,6 +354,7 @@ static int qusb_phy_enable_power(struct qusb_phy *qphy)
 		dev_err(qphy->phy.dev, "Unable to enable refgen\n");
 		goto unset_refgen;
 	}
+#endif
 	pr_debug("%s(): QUSB PHY's regulators are turned ON.\n", __func__);
 
 	mutex_unlock(&qphy->lock);
@@ -850,6 +854,7 @@ static int msm_qusb_phy_drive_dp_pulse(struct usb_phy *phy,
 	qusb_phy_enable_clocks(qphy, true);
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[PWR_CTRL1],
 				PWR_CTRL1_POWR_DOWN, 0x00);
+#if !defined(CONFIG_ARCH_SDM845)
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[DEBUG_CTRL4],
 				FORCED_UTMI_DPPULLDOWN, 0x00);
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[DEBUG_CTRL4],
@@ -857,6 +862,7 @@ static int msm_qusb_phy_drive_dp_pulse(struct usb_phy *phy,
 				FORCED_UTMI_DMPULLDOWN);
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[DEBUG_CTRL3],
 				0xd1, 0xd1);
+#endif
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[PWR_CTRL1],
 				CLAMP_N_EN, CLAMP_N_EN);
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[INTR_CTRL],
@@ -869,11 +875,13 @@ static int msm_qusb_phy_drive_dp_pulse(struct usb_phy *phy,
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[INTR_CTRL],
 				DPSE_INTR_HIGH_SEL |
 				DPSE_INTR_EN, 0x00);
+#if !defined(CONFIG_ARCH_SDM845)
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[DEBUG_CTRL3],
 				0xd1, 0x00);
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[DEBUG_CTRL4],
 				FORCED_UTMI_DPPULLDOWN |
 				FORCED_UTMI_DMPULLDOWN, 0x00);
+#endif
 	msm_usb_write_readback(qphy->base, qphy->phy_reg[PWR_CTRL1],
 				PWR_CTRL1_POWR_DOWN |
 				CLAMP_N_EN, 0x00);
@@ -1042,13 +1050,13 @@ static int qusb2_get_regulators(struct qusb_phy *qphy)
 		dev_err(dev, "unable to get vdda18 supply\n");
 		return PTR_ERR(qphy->vdda18);
 	}
-
+#if !defined(CONFIG_ARCH_SDM845)
 	qphy->refgen = devm_regulator_get(dev, "refgen");
 	if (IS_ERR(qphy->refgen)) {
 		dev_err(dev, "unable to get refgen supply\n");
 		return PTR_ERR(qphy->refgen);
 	}
-
+#endif
 	return 0;
 }
 
