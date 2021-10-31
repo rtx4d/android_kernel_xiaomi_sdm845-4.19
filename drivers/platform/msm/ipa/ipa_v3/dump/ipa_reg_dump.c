@@ -3,7 +3,7 @@
  * Copyright (c) 2019, The Linux Foundation. All rights reserved.
  */
 #include "ipa_reg_dump.h"
-#include "ipa_access_control.h"
+#include "ipa4.5/ipa_access_control.h"
 
 /* Total size required for test bus */
 #define IPA_MEM_OVERLAY_SIZE     0x66000

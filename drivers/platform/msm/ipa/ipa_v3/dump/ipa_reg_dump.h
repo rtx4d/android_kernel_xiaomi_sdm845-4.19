@@ -10,18 +10,18 @@
 
 #include "../ipa_i.h"
 
-#include "ipa_pkt_cntxt.h"
-#include "ipa_hw_common_ex.h"
+#include "ipa4.5/ipa_pkt_cntxt.h"
+#include "ipa4.5/ipa_hw_common_ex.h"
 
 #define IPA_0_IPA_WRAPPER_BASE 0 /* required by following includes */
 
-#include "ipa_hwio.h"
-#include "gsi_hwio.h"
-#include "ipa_gcc_hwio.h"
+#include "ipa4.5/ipa_hwio.h"
+#include "ipa4.5/gsi_hwio.h"
+#include "ipa4.5/ipa_gcc_hwio.h"
 
-#include "ipa_hwio_def.h"
-#include "gsi_hwio_def.h"
-#include "ipa_gcc_hwio_def.h"
+#include "ipa4.5/ipa_hwio_def.h"
+#include "ipa4.5/gsi_hwio_def.h"
+#include "ipa4.5/ipa_gcc_hwio_def.h"
 
 #define IPA_DEBUG_CMDQ_DPS_SELECT_NUM_GROUPS     0x6
 #define IPA_DEBUG_CMDQ_HPS_SELECT_NUM_GROUPS     0x4
