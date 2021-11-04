@@ -17,7 +17,7 @@
  * VERSION = "1.0"
  *---------------------------------------------------------------------------*/
 &soc {
-	dsi_ebbg_fhd_ft8719_video: qcom,mdss_dsi_ebbg_fhd_ft8719_video {
+	dsi_ebbg_fhd_ft8719_video_display: dsi_ebbg_fhd_ft8719_video_display {
 		qcom,mdss-dsi-panel-name = "ebbg fhd video dsi panel";
 		qcom,mdss-dsi-panel-id = <0>;
 		qcom,mdss-dsi-panel-model = "EBBG FHD FT8719 VIDEO PANEL";

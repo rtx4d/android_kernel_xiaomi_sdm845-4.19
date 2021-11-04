@@ -83,55 +83,23 @@
 			qcom,supply-pre-off-sleep = <4>;
 		};
 	};
-
-	dsi_tianma_fhd_nt36672a_video_display: qcom,dsi-display@21 {
-		label = "dsi_tianma_fhd_nt36672a_video_display";
-		qcom,display-type = "primary";
-
-		qcom,dsi-ctrl-num = <0>;
-		qcom,dsi-phy-num = <0>;
-		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
-
-		qcom,dsi-panel = <&dsi_tianma_fhd_nt36672a_video>;
-	};
-
-	dsi_ebbg_fhd_ft8719_video_display: qcom,dsi-display@23 {
-		label = "dsi_ebbg_fhd_ft8719_video_display";
-		qcom,display-type = "primary";
-
-		qcom,dsi-ctrl-num = <0>;
-		qcom,dsi-phy-num = <0>;
-		qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
-
-		qcom,dsi-panel = <&dsi_ebbg_fhd_ft8719_video>;
-	};
-
-	sde_dsi: qcom,dsi-display {
-		compatible = "qcom,dsi-display";
-
-		qcom,dsi-ctrl = <&mdss_dsi0>;
-		qcom,dsi-phy = <&mdss_dsi_phy0>;
-
-		clocks = <&mdss_dsi0_pll BYTECLK_MUX_0_CLK>,
-			<&mdss_dsi0_pll PCLK_MUX_0_CLK>;
-		clock-names = "mux_byte_clk0", "mux_pixel_clk0";
-		pinctrl-names = "panel_active", "panel_suspend";
-		pinctrl-0 = <&sde_dsi_active>;
-		pinctrl-1 = <&sde_dsi_suspend>;
-
-		vddio-supply = <&pm8998_l14>;
-		lab-supply = <&lab_regulator>;
-		ibb-supply = <&ibb_regulator>;
-
-		qcom,dsi-display-list =
-			<&dsi_tianma_fhd_nt36672a_video_display
-			&dsi_ebbg_fhd_ft8719_video_display>;
-	};
 };
 
-&dsi_tianma_fhd_nt36672a_video {
+&sde_dsi {
+	qcom,dsi-default-panel = <&dsi_tianma_fhd_nt36672a_video_display>;
+};
+
+&msm_notifier {
+	panel = <&dsi_tianma_fhd_nt36672a_video_display &dsi_ebbg_fhd_ft8719_video_display>;
+};
+
+&dsi_tianma_fhd_nt36672a_video_display {
 	qcom,mdss-dsi-t-clk-post = <0x0E>;
 	qcom,mdss-dsi-t-clk-pre = <0x33>;
+	qcom,dsi-ctrl-num = <0>;
+	qcom,dsi-phy-num = <0>;
+	qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+	
 	qcom,mdss-dsi-display-timings {
 		timing@0{
 			qcom,mdss-dsi-panel-phy-timings = [00 21 08 08 25 22 09 08 06 03 04 00];
@@ -141,7 +109,7 @@
 	};
 };
 
-&dsi_ebbg_fhd_ft8719_video {
+&dsi_ebbg_fhd_ft8719_video_display {
 	qcom,mdss-dsi-t-clk-post = <0x0E>;
 	qcom,mdss-dsi-t-clk-pre = <0x41>;
 
@@ -155,7 +123,11 @@
 	qcom,mdss-dsi-panel-status-command-state = "dsi_hs_mode";
 	qcom,mdss-dsi-panel-status-value = <0x9c 0x00 0x00>;
 	qcom,mdss-dsi-panel-status-read-length = <1 1 1>;
-
+	
+	qcom,dsi-ctrl-num = <0>;
+	qcom,dsi-phy-num = <0>;
+	qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+	
 	qcom,mdss-dsi-display-timings {
 		timing@0{
 			qcom,mdss-dsi-panel-phy-timings = [00 21 08 08 25 22 09 08 06 03 04 00];

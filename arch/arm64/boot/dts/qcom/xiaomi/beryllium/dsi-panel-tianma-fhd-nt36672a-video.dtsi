@@ -17,7 +17,7 @@
  * VERSION = "1.0"
  *---------------------------------------------------------------------------*/
 &soc {
-	dsi_tianma_fhd_nt36672a_video: qcom,mdss_dsi_tianma_fhd_nt36672a_video {
+	dsi_tianma_fhd_nt36672a_video_display: dsi_tianma_fhd_nt36672a_video_display {
 		qcom,mdss-dsi-panel-name = "tianma fhd video dsi panel";
 		qcom,mdss-dsi-panel-id = <0>;
 		qcom,mdss-dsi-panel-model = "TIANMA FHD NT36672A VIDEO PANEL";
