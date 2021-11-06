@@ -1177,13 +1177,6 @@
 			< 2208000 MHZ_TO_MBPS(681, 4) >;
 	};
 
-	clock_rpmh: qcom,rpmhclk {
-		compatible = "qcom,rpmh-clk-sdm845";
-		#clock-cells = <1>;
-		mboxes = <&apps_rsc 0>;
-		mbox-names = "apps";
-	};
-
 	clock_gcc: qcom,gcc@100000 {
 		compatible = "qcom,gcc-sdm845", "syscon";
 		reg = <0x100000 0x1f0000>;
@@ -1291,6 +1284,22 @@
 		clock-names = "xo_clk_src";
 		clocks = <&clock_rpmh RPMH_CXO_CLK>;
 		#clock-cells = <1>;
+	};
+
+	clocks {
+		xo_board: xo-board {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <38400000>;
+			clock-output-names = "xo_board";
+		};
+
+		sleep_clk: sleep-clk {
+			compatible = "fixed-clock";
+			clock-frequency = <32764>;
+			clock-output-names = "chip_sleep_clk";
+			#clock-cells = <1>;
+		};
 	};
 
 	clock_aop: qcom,aopclk {
@@ -2222,6 +2231,11 @@
 		system_pm {
 			compatible = "qcom,system-pm";
 		};
+
+		clock_rpmh: qcom,rpmhclk {
+			compatible = "qcom,sdm845-rpmh-clk";
+			#clock-cells = <1>;
+		};
 	};
 
 	disp_rsc: rsc@af20000 {
@@ -2240,6 +2254,11 @@
 		msm_bus_disp_rsc {
 			compatible = "qcom,msm-bus-rsc";
 			qcom,msm-bus-id = <MSM_BUS_RSC_DISP>;
+		};
+
+		sde_rsc_rpmh {
+			compatible = "qcom,sde-rsc-rpmh";
+			cell-index = <0>;
 		};
 	};
 
