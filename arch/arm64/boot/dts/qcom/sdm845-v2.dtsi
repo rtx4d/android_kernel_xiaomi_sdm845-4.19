@@ -59,9 +59,10 @@
 		reg = <0x5091008 0x4>;
 	};
 
-	pdc: interrupt-controller@0xb220000{
-		compatible = "qcom,pdc-sdm845-v2";
+	pdc: interrupt-controller@0xb220000 {
+		compatible = "qcom,sdm845-pdc";
 		reg = <0xb220000 0x400>;
+		qcom,pdc-ranges = <0 512 90>, <94 641 15>, <115 662 7>;
 		#interrupt-cells = <3>;
 		interrupt-parent = <&intc>;
 		interrupt-controller;
