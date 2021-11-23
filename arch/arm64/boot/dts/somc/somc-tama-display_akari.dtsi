@@ -4,6 +4,14 @@
  */
 
 &dsi_default_panel {
+	somc,start-panel-detection;
+	somc,dsi-panel-list = <&dsi_3 &dsi_7>;
+	somc,dsi-panel-type = "lcd";
+
+	qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+	qcom,dsi-ctrl-num = <0>;
+	qcom,dsi-phy-num = <0>;
+
 	/delete-property/ qcom,panel-touch-supply-entries;
 	qcom,mdss-dsi-t-clk-post = <0x0E>;
 	qcom,mdss-dsi-t-clk-pre = <0x33>;
@@ -16,6 +24,11 @@
 };
 
 &dsi_3 {
+	somc,dsi-panel-type = "lcd";
+	qcom,dsi-select-clocks = "mux_byte_clk0", "mux_pixel_clk0";
+	qcom,dsi-ctrl-num = <0>;
+	qcom,dsi-phy-num = <0>;
+	somc,dsi-index = <0>;
 	qcom,panel-supply-entries = <&dsi_panel_lcd_pwr_supply>;
 	qcom,panel-vspvsn-supply-entries = <&dsi_panel_vspvsn_pwr_supply>;
 	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
@@ -35,6 +48,7 @@
 };
 
 &dsi_7 {
+	somc,dsi-index = <1>;
 	qcom,panel-supply-entries = <&dsi_panel_lcd_pwr_supply>;
 	qcom,panel-vspvsn-supply-entries = <&dsi_panel_vspvsn_pwr_supply>;
 	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";

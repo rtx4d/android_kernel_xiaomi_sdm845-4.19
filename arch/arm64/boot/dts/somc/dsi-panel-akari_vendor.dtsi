@@ -45,7 +45,7 @@
 		qcom,mdss-dsi-panel-blackness-level = <3230>;
 
 		qcom,mdss-dsi-reset-sequence = <1 50>;
-		qcom,mdss-dsi-touch-reset-sequence = <1 0>;
+		somc,mdss-dsi-touch-reset-sequence = <1 0>;
 		somc,pw-on-rst-seq = "after_power_on";
 
 		somc,mdss-dsi-master;
@@ -186,7 +186,7 @@
 		qcom,mdss-dsi-panel-blackness-level = <3230>;
 
 		qcom,mdss-dsi-reset-sequence = <1 0>;
-		qcom,mdss-dsi-touch-reset-sequence = <1 5>;
+		somc,mdss-dsi-touch-reset-sequence = <1 5>;
 		somc,pw-on-rst-seq = "before_power_on";
 
 		somc,mdss-dsi-master;

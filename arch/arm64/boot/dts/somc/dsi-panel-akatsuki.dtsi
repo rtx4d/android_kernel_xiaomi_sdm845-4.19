@@ -41,7 +41,7 @@
 		qcom,mdss-brightness-max-level = <1023>;
 		qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
 		qcom,mdss-dsi-reset-sequence = <0 10>, <1 20>;
-		qcom,mdss-dsi-touch-reset-sequence = <1 0>;
+		somc,mdss-dsi-touch-reset-sequence = <1 0>;
 		somc,mdss-dsi-master;
 		somc,pw-off-rst-b-seq = <0 0>;
 		somc,pw-wait-after-on-vdd = <0>;
