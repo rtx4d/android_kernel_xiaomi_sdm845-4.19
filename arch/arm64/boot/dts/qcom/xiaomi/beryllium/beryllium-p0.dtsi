@@ -115,7 +115,7 @@
 	};
 };
 
-&removed_region2 {
+&removed_region1 {
 	reg = <0 0x86200000 0 0x4700000>;
 };
 
