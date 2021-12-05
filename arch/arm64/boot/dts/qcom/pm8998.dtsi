@@ -155,8 +155,6 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			#thermal-sensor-cells = <1>;
-			io-channels = <&pm8998_vadc ADC_AMUX_THM1_PU2>,
-					<&pm8998_vadc ADC_AMUX_THM2_PU2>;
 		};
 
 		pm8998_clkdiv: clock-controller@5b00 {
