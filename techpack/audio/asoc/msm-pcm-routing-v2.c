@@ -5394,7 +5394,7 @@ static int msm_ec_ref_rate_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
-static int get_ec_ref_port_id(int value, int *index)
+static int get_ec_ref_port_id(int value, int *index, bool state)
 {
 	int port_id;
 
@@ -5586,10 +5586,11 @@ static int msm_routing_afe_lb_tx_port_put(struct snd_kcontrol *kcontrol,
 				struct snd_ctl_elem_value *ucontrol)
 {
 	int value = ucontrol->value.integer.value[0];
+	bool state = true;
 
 	mutex_lock(&routing_lock);
 	afe_loopback_tx_port_id = get_ec_ref_port_id(value,
-			&afe_loopback_tx_port_index);
+			&afe_loopback_tx_port_index, state);
 	pr_debug("%s: afe_loopback_tx_port_index = %d\n",
 	    __func__, afe_loopback_tx_port_index);
 	mutex_unlock(&routing_lock);
@@ -5692,7 +5693,7 @@ static int msm_routing_ec_ref_rx_put(struct snd_kcontrol *kcontrol,
 	bool state = true;
 
 	mutex_lock(&routing_lock);
-	msm_ec_ref_port_id = get_ec_ref_port_id(value, &msm_route_ec_ref_rx);
+	msm_ec_ref_port_id = get_ec_ref_port_id(value, &msm_route_ec_ref_rx, state);
 	pr_debug("%s: msm_route_ec_ref_rx = %d\n",
 	    __func__, msm_route_ec_ref_rx);
 	
@@ -5703,7 +5704,7 @@ static int msm_routing_ec_ref_rx_put(struct snd_kcontrol *kcontrol,
 
 	if (state || (!state && wakeup_ext_ec_ref == 0 && voip_ext_ec_common_ref == 0)) {
 		pr_info("%s: update state!\n", __func__);
-		adm_ec_ref_rx_id(ec_ref_port_id);
+		adm_ec_ref_rx_id(msm_ec_ref_port_id);
 		mutex_unlock(&routing_lock);
 		snd_soc_dapm_mux_update_power(widget->dapm, kcontrol,
 					msm_route_ec_ref_rx, e, update);
@@ -31170,7 +31171,7 @@ static int msm_routing_probe(struct snd_soc_component *component)
 
 	snd_soc_add_component_controls(component, pll_clk_drift_controls,
 				      ARRAY_SIZE(pll_clk_drift_controls));
-	elliptic_add_platform_controls(platform);
+	elliptic_add_platform_controls(component);
 	return 0;
 }
 
