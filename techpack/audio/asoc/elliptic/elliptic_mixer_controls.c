@@ -1216,8 +1216,8 @@ unsigned int elliptic_add_platform_controls(void *platform)
 		ARRAY_SIZE(ultrasound_filter_mixer_controls);
 
 	if (platform != NULL) {
-		snd_soc_add_platform_controls(
-			(struct snd_soc_platform *)platform,
+		snd_soc_add_component_controls(
+			(struct snd_soc_component *)platform,
 			ultrasound_filter_mixer_controls,
 			num_controls);
 	} else {
