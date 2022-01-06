@@ -37,13 +37,10 @@
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
 #include <linux/pm_wakeup.h>
-#include <linux/fb.h>
-#include <drm/drm_bridge.h>
-#include <drm/drm_notifier.h>
+#include <drm/drm_panel.h>
 
 #define FPC_SCREEN_HOLD_TIME 2000
 #define FPC_TTW_HOLD_TIME 2000
-#define FP_UNLOCK_REJECTION_TIMEOUT (FPC_TTW_HOLD_TIME - 500)
 
 #define RESET_LOW_SLEEP_MIN_US 5000
 #define RESET_LOW_SLEEP_MAX_US (RESET_LOW_SLEEP_MIN_US + 100)
@@ -54,8 +51,7 @@
 #define PWR_ON_SLEEP_MIN_US 100
 #define PWR_ON_SLEEP_MAX_US (PWR_ON_SLEEP_MIN_US + 900)
 
-#define NUM_PARAMS_REG_ENABLE_SET 2
-
+static struct drm_panel *active_panel;
 
 static const char * const pctl_names[] = {
 	"fpc1020_reset_reset",
@@ -91,10 +87,9 @@ struct fpc1020_data {
 	bool prepared;
 	atomic_t wakeup_enabled; /* Used both in ISR and non-ISR */
 	int irqf;
-	struct notifier_block fb_notifier;
+	struct notifier_block drm_notifier;
 	bool fb_black;
 	bool wait_finger_down;
-	struct work_struct work;
 };
 
 static irqreturn_t fpc1020_irq_handler(int irq, void *handle);
@@ -586,13 +581,6 @@ static const struct attribute_group attribute_group = {
 	.attrs = attributes,
 };
 
-static void notification_work(struct work_struct *work)
-{
-	pr_debug("%s: unblank\n", __func__);
-	dsi_bridge_interface_enable(FP_UNLOCK_REJECTION_TIMEOUT);
-}
-
-
 static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 {
 	struct fpc1020_data *fpc1020 = handle;
@@ -607,7 +595,6 @@ static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 	if (fpc1020->wait_finger_down && fpc1020->fb_black && fpc1020->prepared) {
 		pr_debug("%s enter\n", __func__);
 		fpc1020->wait_finger_down = false;
-		schedule_work(&fpc1020->work);
 	}
 
 	return IRQ_HANDLED;
@@ -636,51 +623,72 @@ static int fpc1020_request_named_gpio(struct fpc1020_data *fpc1020,
 	return 0;
 }
 
-static int fpc_fb_notif_callback(struct notifier_block *nb,
-		unsigned long val, void *data)
+static int fpc_drm_notif_callback(struct notifier_block *nb,
+		unsigned long event, void *data)
 {
 	struct fpc1020_data *fpc1020 = container_of(nb, struct fpc1020_data,
-			fb_notifier);
-	struct fb_event *evdata = data;
-	unsigned int blank;
+			drm_notifier);
+	struct drm_panel_notifier *evdata = data;
+	int blank;
 
-	if (!fpc1020)
+	if (fpc1020->prepared == false)
 		return 0;
 
-	if (val != DRM_EVENT_BLANK || fpc1020->prepared == false)
-		return 0;
+	pr_debug("[info] %s value = %d\n", __func__, (int)event);
 
-	pr_debug("[info] %s value = %d\n", __func__, (int)val);
-
-	if (evdata && evdata->data && val == DRM_EVENT_BLANK) {
-		blank = *(int *)(evdata->data);
-		switch (blank) {
-		case DRM_BLANK_POWERDOWN:
-			fpc1020->fb_black = true;
-#ifdef CONFIG_FINGERPRINT_FPC_SCREEN_NOTIFY
-			__pm_wakeup_event(fpc1020->screen_wl, FPC_SCREEN_HOLD_TIME);
-			sysfs_notify(&fpc1020->dev->kobj, NULL, dev_attr_screen_status.attr.name);
-#endif
-			break;
-		case DRM_BLANK_UNBLANK:
-			fpc1020->fb_black = false;
-#ifdef CONFIG_FINGERPRINT_FPC_SCREEN_NOTIFY
-			__pm_wakeup_event(fpc1020->screen_wl, FPC_SCREEN_HOLD_TIME);
-			sysfs_notify(&fpc1020->dev->kobj, NULL, dev_attr_screen_status.attr.name);
-#endif
-			break;
-		default:
-			pr_debug("%s defalut\n", __func__);
-			break;
+	if (evdata && evdata->data && fpc1020) {
+		if (event == DRM_PANEL_EVENT_BLANK) {
+			blank = *(int *)evdata->data;
+			switch (blank) {
+			case DRM_PANEL_BLANK_POWERDOWN:
+				pr_info("%s: fpc event blank (%ld)\n", __func__, event);
+				fpc1020->fb_black = true;
+	#ifdef CONFIG_FINGERPRINT_FPC_SCREEN_NOTIFY
+				__pm_wakeup_event(fpc1020->screen_wl, FPC_SCREEN_HOLD_TIME);
+				sysfs_notify(&fpc1020->dev->kobj, NULL, dev_attr_screen_status.attr.name);
+	#endif
+				break;
+			case DRM_PANEL_BLANK_UNBLANK:
+				pr_info("%s: fpc event unblank (%ld)\n", __func__, event);
+				fpc1020->fb_black = false;
+	#ifdef CONFIG_FINGERPRINT_FPC_SCREEN_NOTIFY
+				__pm_wakeup_event(fpc1020->screen_wl, FPC_SCREEN_HOLD_TIME);
+				sysfs_notify(&fpc1020->dev->kobj, NULL, dev_attr_screen_status.attr.name);
+	#endif
+				break;
+			default:
+				pr_debug("%s defalut\n", __func__);
+				break;
+			}
 		}
 	}
-	return NOTIFY_OK;
+
+	return 0;
 }
 
+static int fpc_get_active_panel(struct device_node *np)
+{
+	struct device_node *node;
+	struct drm_panel *panel;
+	int i, count;
 
-static struct notifier_block fpc_notif_block = {
-	.notifier_call = fpc_fb_notif_callback,
-};
+	count = of_count_phandle_with_args(np, "panel", NULL);
+	if (count <= 0)
+		return -ENODEV;
+
+	for (i = 0; i < count; i++) {
+		node = of_parse_phandle(np, "panel", i);
+		panel = of_drm_find_panel(node);
+		of_node_put(node);
+		if (!IS_ERR(panel)) {
+			active_panel = panel;
+			goto end;
+		}
+	}
+
+end:
+	return PTR_ERR(panel);
+}
 
 static int fpc1020_probe(struct platform_device *pdev)
 {
@@ -691,6 +699,13 @@ static int fpc1020_probe(struct platform_device *pdev)
 	struct device_node *np = dev->of_node;
 	struct fpc1020_data *fpc1020 = devm_kzalloc(dev, sizeof(*fpc1020),
 			GFP_KERNEL);
+			
+	rc = fpc_get_active_panel(np);
+	if (rc == -EPROBE_DEFER) {
+		pr_err("%s: Assigned panel found but not ready, deferring probe\n", 
+				__func__);
+		goto exit;
+	}
 
 	if (!fpc1020) {
 		dev_err(dev,
@@ -761,9 +776,15 @@ static int fpc1020_probe(struct platform_device *pdev)
 
 	fpc1020->fb_black = false;
 	fpc1020->wait_finger_down = false;
-	INIT_WORK(&fpc1020->work, notification_work);
-	fpc1020->fb_notifier = fpc_notif_block;
-	drm_register_client(&fpc1020->fb_notifier);
+
+	if (active_panel) {
+		fpc1020->drm_notifier.notifier_call = fpc_drm_notif_callback;
+		rc = drm_panel_notifier_register(active_panel, &fpc1020->drm_notifier);
+		if (rc < 0) {
+			dev_err(dev, "Unable to register drm_notifier\n");
+			// TODO handle error here
+		}
+	}
 
 	dev_info(dev, "%s: ok\n", __func__);
 
@@ -775,7 +796,8 @@ static int fpc1020_remove(struct platform_device *pdev)
 {
 	struct fpc1020_data *fpc1020 = platform_get_drvdata(pdev);
 
-	drm_unregister_client(&fpc1020->fb_notifier);
+	if (active_panel)
+		drm_panel_notifier_unregister(active_panel, &fpc1020->drm_notifier);
 	sysfs_remove_group(&pdev->dev.kobj, &attribute_group);
 	mutex_destroy(&fpc1020->lock);
 	wakeup_source_unregister(fpc1020->ttw_wl);

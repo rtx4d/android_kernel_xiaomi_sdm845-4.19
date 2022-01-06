@@ -108,8 +108,8 @@ struct gf_ioc_chip_info {
 /*#define  GF_PW_CTL*/
 #define GF_NETLINK_ENABLE 1
 #define GF_NET_EVENT_IRQ 1
-#define GF_NET_EVENT_FB_BLACK 2
-#define GF_NET_EVENT_FB_UNBLACK 3
+#define GF_NET_EVENT_DRM_BLACK 2
+#define GF_NET_EVENT_DRM_UNBLACK 3
 #define NETLINK_TEST 25
 
 struct gf_dev {
@@ -135,11 +135,10 @@ struct gf_dev {
 #ifdef GF_FASYNC
 	struct fasync_struct *async;
 #endif
-	struct notifier_block notifier;
+	struct notifier_block drm_notifier;
 	char device_available;
-	char fb_black;
+	char drm_black;
 	char wait_finger_down;
-	struct work_struct work;
 #ifdef CONFIG_FINGERPRINT_FP_VREG_CONTROL
 	struct regulator *vreg;
 #endif

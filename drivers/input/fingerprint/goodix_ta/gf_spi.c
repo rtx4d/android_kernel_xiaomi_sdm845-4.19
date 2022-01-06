@@ -38,12 +38,10 @@
 #include <linux/of_gpio.h>
 #include <linux/timer.h>
 #include <linux/notifier.h>
-#include <linux/fb.h>
 #include <linux/pm_qos.h>
 #include <linux/cpufreq.h>
 #include <linux/pm_wakeup.h>
-#include <drm/drm_bridge.h>
-#include <drm/drm_notifier.h>
+#include <drm/drm_panel.h>
 
 #include "gf_spi.h"
 
@@ -59,7 +57,6 @@
 #define PATCH_LEVEL 1
 
 #define WAKELOCK_HOLD_TIME 2000 /* in ms */
-#define FP_UNLOCK_REJECTION_TIMEOUT (WAKELOCK_HOLD_TIME - 500)
 
 #define GF_SPIDEV_NAME	   "goodix,fingerprint"
 /*device name after register in charater*/
@@ -95,6 +92,10 @@ struct gf_key_map maps[] = {
 	{ EV_KEY, GF_NAV_INPUT_HEAVY },
 #endif
 };
+
+#if defined(CONFIG_DRM_PANEL)
+static struct drm_panel *active_panel;
+#endif
 
 static void gf_enable_irq(struct gf_dev *gf_dev)
 {
@@ -491,12 +492,6 @@ static long gf_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 }
 #endif /*CONFIG_COMPAT*/
 
-static void notification_work(struct work_struct *work)
-{
-	pr_debug("%s unblank\n", __func__);
-	dsi_bridge_interface_enable(FP_UNLOCK_REJECTION_TIMEOUT);
-}
-
 static irqreturn_t gf_irq(int irq, void *handle)
 {
 	struct gf_dev *gf_dev = &gf;
@@ -507,14 +502,13 @@ static irqreturn_t gf_irq(int irq, void *handle)
 	pr_debug("%s enter\n", __func__);
 	__pm_wakeup_event(fp_wakelock, WAKELOCK_HOLD_TIME);
 	sendnlmsg(temp);
-	if ((gf_dev->wait_finger_down == true) && (gf_dev->device_available == 1) && (gf_dev->fb_black == 1)) {
+	if ((gf_dev->wait_finger_down == true) && (gf_dev->device_available == 1) && (gf_dev->drm_black == 1)) {
 		key_input = KEY_RIGHT;
 		input_report_key(gf_dev->input, key_input, 1);
 		input_sync(gf_dev->input);
 		input_report_key(gf_dev->input, key_input, 0);
 		input_sync(gf_dev->input);
 		gf_dev->wait_finger_down = false;
-		schedule_work(&gf_dev->work);
 	}
 #elif defined (GF_FASYNC)
 	struct gf_dev *gf_dev = &gf;
@@ -680,28 +674,52 @@ static const struct file_operations gf_fops = {
 #endif
 };
 
-static int goodix_fb_state_chg_callback(struct notifier_block *nb,
-		unsigned long val, void *data)
+static int gf_get_active_panel(struct device_node *np)
+{
+	struct device_node *node;
+	struct drm_panel *panel;
+	int i, count;
+
+	count = of_count_phandle_with_args(np, "panel", NULL);
+	if (count <= 0)
+		return -ENODEV;
+
+	for (i = 0; i < count; i++) {
+		node = of_parse_phandle(np, "panel", i);
+		panel = of_drm_find_panel(node);
+		of_node_put(node);
+		if (!IS_ERR(panel)) {
+			active_panel = panel;
+			goto end;
+		}
+	}
+
+end:
+	return PTR_ERR(panel);
+}
+
+static int goodix_drm_state_chg_callback(struct notifier_block *nb,
+		unsigned long event, void *data)
 {
 	struct gf_dev *gf_dev;
-	struct fb_event *evdata = data;
-	unsigned int blank;
+	struct drm_panel_notifier *evdata = data;
+	int blank;
 	char temp[4] = { 0x0 };
 
-	if (val != DRM_EVENT_BLANK)
+	if (event != DRM_PANEL_EVENT_BLANK)
 		return 0;
-	pr_debug("[info] %s go to the goodix_fb_state_chg_callback value = %d\n",
-			__func__, (int)val);
-	gf_dev = container_of(nb, struct gf_dev, notifier);
-	if (evdata && evdata->data && val == DRM_EVENT_BLANK && gf_dev) {
+	pr_debug("[info] %s go to the goodix_drm_state_chg_callback value = %d\n",
+			__func__, (int)event);
+	gf_dev = container_of(nb, struct gf_dev, drm_notifier);
+	if (evdata && evdata->data && event == DRM_PANEL_EVENT_BLANK && gf_dev) {
 		blank = *(int *)(evdata->data);
 		switch (blank) {
-		case DRM_BLANK_POWERDOWN:
+		case DRM_PANEL_BLANK_POWERDOWN:
 			if (gf_dev->device_available == 1) {
-				gf_dev->fb_black = 1;
+				gf_dev->drm_black = 1;
 				gf_dev->wait_finger_down = true;
 #if defined(GF_NETLINK_ENABLE)
-				temp[0] = GF_NET_EVENT_FB_BLACK;
+				temp[0] = GF_NET_EVENT_DRM_BLACK;
 				sendnlmsg(temp);
 #elif defined (GF_FASYNC)
 				if (gf_dev->async) {
@@ -710,11 +728,11 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 #endif
 			}
 			break;
-		case DRM_BLANK_UNBLANK:
+		case DRM_PANEL_BLANK_UNBLANK:
 			if (gf_dev->device_available == 1) {
-				gf_dev->fb_black = 0;
+				gf_dev->drm_black = 0;
 #if defined(GF_NETLINK_ENABLE)
-				temp[0] = GF_NET_EVENT_FB_UNBLACK;
+				temp[0] = GF_NET_EVENT_DRM_UNBLACK;
 				sendnlmsg(temp);
 #elif defined (GF_FASYNC)
 				if (gf_dev->async) {
@@ -731,10 +749,6 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
-static struct notifier_block goodix_noti_block = {
-	.notifier_call = goodix_fb_state_chg_callback,
-};
-
 static struct class *gf_class;
 #if defined(USE_SPI_BUS)
 static int gf_probe(struct spi_device *spi)
@@ -743,9 +757,18 @@ static int gf_probe(struct platform_device *pdev)
 #endif
 {
 	struct gf_dev *gf_dev = &gf;
+	struct device *dev = &pdev->dev;
+	struct device_node *np = dev->of_node;
 	int status = -EINVAL;
 	unsigned long minor;
 	int i;
+	
+	status = gf_get_active_panel(np);
+	if (status == -EPROBE_DEFER) {
+		pr_err("%s: Assigned panel found but not ready, deferring probe\n", 
+				__func__);
+		return status;
+	}
 
 	/* Initialize the driver data */
 	INIT_LIST_HEAD(&gf_dev->device_entry);
@@ -758,9 +781,8 @@ static int gf_probe(struct platform_device *pdev)
 	gf_dev->reset_gpio = -EINVAL;
 	gf_dev->pwr_gpio = -EINVAL;
 	gf_dev->device_available = 0;
-	gf_dev->fb_black = 0;
+	gf_dev->drm_black = 0;
 	gf_dev->wait_finger_down = false;
-	INIT_WORK(&gf_dev->work, notification_work);
 
 	if (gf_parse_dts(gf_dev))
 		goto error_hw;
@@ -822,8 +844,14 @@ static int gf_probe(struct platform_device *pdev)
 	spi_clock_set(gf_dev, 1000000);
 #endif
 
-	gf_dev->notifier = goodix_noti_block;
-	drm_register_client(&gf_dev->notifier);
+	if (active_panel) {
+		gf_dev->drm_notifier.notifier_call = goodix_drm_state_chg_callback;
+		status = drm_panel_notifier_register(active_panel, &gf_dev->drm_notifier);
+		if (status < 0) {
+			dev_err(dev, "Unable to register drm_notifier\n");
+			// TODO handle error here
+		}
+	}
 
 	gf_dev->irq = gf_irq_num(gf_dev);
 
@@ -883,7 +911,8 @@ static int gf_remove(struct platform_device *pdev)
 		gf_cleanup(gf_dev);
 
 
-	drm_unregister_client(&gf_dev->notifier);
+	if (active_panel)
+		drm_panel_notifier_unregister(active_panel, &gf_dev->drm_notifier);
 	mutex_unlock(&device_list_lock);
 
 	return 0;
