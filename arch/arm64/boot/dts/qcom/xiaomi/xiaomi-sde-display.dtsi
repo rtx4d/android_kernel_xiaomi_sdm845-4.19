@@ -13,8 +13,36 @@
 
 #include "beryllium/dsi-panel-tianma-fhd-nt36672a-video.dtsi"
 #include "beryllium/dsi-panel-ebbg-fhd-ft8719-video.dtsi"
+#include "dipper/dsi-panel-ss-notch-fhd-ea8074-cmd.dtsi"
 
 &soc {
+
+    dsi_amoled_panel_pwr_supply: dsi_amoled_panel_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <0>;
+			qcom,supply-name = "vddio";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <62000>;
+			qcom,supply-disable-load = <80>;
+			//qcom,supply-post-on-sleep = <20>;
+		};
+
+		qcom,panel-supply-entry@1 {
+			reg = <1>;
+			qcom,supply-name = "vci";
+			qcom,supply-min-voltage = <3000000>;
+			qcom,supply-max-voltage = <3000000>;
+			qcom,supply-enable-load = <62000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-post-on-sleep = <10>;
+			qcom,supply-pre-off-sleep = <10>;
+		};
+	};
+
 	dsi_nt36672a_panel_pwr_supply: dsi_nt36672a_panel_pwr_supply {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -87,6 +115,19 @@
 
 &sde_dsi {
 	qcom,dsi-default-panel = <&dsi_tianma_fhd_nt36672a_video_display>;
+};
+
+&dsi_ss_notch_fhd_ea8074_cmd {
+	qcom,mdss-dsi-t-clk-post = <0x0e>;
+	qcom,mdss-dsi-t-clk-pre = <0x34>;
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-panel-phy-timings = [00 22 08 09 25 23 09
+				09 06 03 04 00];
+			qcom,display-topology = <1 0 1>;
+			qcom,default-topology-index = <0>;
+		};
+	};
 };
 
 &dsi_tianma_fhd_nt36672a_video_display {
