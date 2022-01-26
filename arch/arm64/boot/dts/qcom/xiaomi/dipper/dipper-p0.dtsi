@@ -257,7 +257,7 @@
 	status = "disabled";
 };
 
-&dsi_ss_notch_fhd_ea8074_cmd {
+&dsi_ss_ea8074_notch_fhd_cmd_display {
 	qcom,panel-supply-entries = <&dsi_amoled_panel_pwr_supply>;
 	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
 	qcom,mdss-dsi-bl-min-level = <2>;
@@ -340,10 +340,6 @@
 	qcom,platform-reset-gpio = <&tlmm 6 0>;
 };
 
-&dsi_ss_ea8074_notch_fhd_cmd_display {
-	qcom,dsi-display-active;
-};
-
 &sde_dp {
 	status = "disabled";
 };
@@ -367,7 +363,12 @@
 
 &mdss_mdp {
 	#cooling-cells = <2>;
-	connectors = <&sde_rscc &sde_wb>;
+	connectors = <&sde_rscc &sde_wb &sde_dsi>;
+};
+
+&sde_dsi {
+    vci-supply = <&disp_vci_vreg>;
+    qcom,dsi-default-panel = <&dsi_ss_ea8074_notch_fhd_cmd_display>;
 };
 
 &pm8998_l28{
