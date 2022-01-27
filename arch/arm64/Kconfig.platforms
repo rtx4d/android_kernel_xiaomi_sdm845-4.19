@@ -463,4 +463,10 @@ config MACH_XIAOMI_E1N
         help
           Support for Xiaomi Mi 8 (dipper)
 
+config MACH_XIAOMI_D5X
+        bool "D5X board"
+        select MACH_XIAOMI_SDM845
+        help
+          Support for Xiaomi MIX 2S (polaris)
+
 endmenu

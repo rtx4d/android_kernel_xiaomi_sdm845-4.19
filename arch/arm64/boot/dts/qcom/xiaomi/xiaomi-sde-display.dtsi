@@ -14,10 +14,12 @@
 #include "beryllium/dsi-panel-tianma-fhd-nt36672a-video.dtsi"
 #include "beryllium/dsi-panel-ebbg-fhd-ft8719-video.dtsi"
 #include "dipper/dsi-panel-ss-notch-fhd-ea8074-cmd.dtsi"
+#include "polaris/dsi-panel-ebbg-fhd-ft8716-video.dtsi"
+#include "polaris/dsi-panel-jdi-fhd-nt35596s-video.dtsi"
 
 &soc {
 
-    dsi_amoled_panel_pwr_supply: dsi_amoled_panel_pwr_supply {
+	dsi_amoled_panel_pwr_supply: dsi_amoled_panel_pwr_supply {
 		#address-cells = <1>;
 		#size-cells = <0>;
 
@@ -40,6 +42,40 @@
 			qcom,supply-disable-load = <80>;
 			qcom,supply-post-on-sleep = <10>;
 			qcom,supply-pre-off-sleep = <10>;
+		};
+	};
+
+	dsi_nt35596s_panel_pwr_supply: dsi_nt35596s_panel_pwr_supply {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		qcom,panel-supply-entry@0 {
+			reg = <1>;
+			qcom,supply-name = "vddio";
+			qcom,supply-min-voltage = <1800000>;
+			qcom,supply-max-voltage = <1800000>;
+			qcom,supply-enable-load = <62000>;
+			qcom,supply-disable-load = <80>;
+			qcom,supply-pre-off-sleep = <5>;
+		};
+
+		qcom,panel-supply-entry@1 {
+			reg = <2>;
+			qcom,supply-name = "lab";
+			qcom,supply-min-voltage = <4600000>;
+			qcom,supply-max-voltage = <6000000>;
+			qcom,supply-enable-load = <100000>;
+			qcom,supply-disable-load = <100>;
+		};
+
+		qcom,panel-supply-entry@2 {
+			reg = <3>;
+			qcom,supply-name = "ibb";
+			qcom,supply-min-voltage = <4600000>;
+			qcom,supply-max-voltage = <6000000>;
+			qcom,supply-enable-load = <100000>;
+			qcom,supply-disable-load = <100>;
+			qcom,supply-pre-off-sleep = <5>;
 		};
 	};
 
@@ -130,12 +166,36 @@
 	};
 };
 
+&dsi_jdi_fhd_nt35596s_video {
+	qcom,mdss-dsi-t-clk-post = <0x0E>;
+	qcom,mdss-dsi-t-clk-pre = <0x34>;
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-panel-phy-timings = [00 22 08 08 24 24 08 08 05 03 04 00];
+			qcom,display-topology = <1 0 1>;
+			qcom,default-topology-index = <0>;
+		};
+	};
+};
+
 &dsi_tianma_fhd_nt36672a_video_display {
 	qcom,mdss-dsi-t-clk-post = <0x0E>;
 	qcom,mdss-dsi-t-clk-pre = <0x33>;
 	qcom,mdss-dsi-display-timings {
 		timing@0{
 			qcom,mdss-dsi-panel-phy-timings = [00 21 08 08 25 22 09 08 06 03 04 00];
+			qcom,display-topology = <1 0 1>;
+			qcom,default-topology-index = <0>;
+		};
+	};
+};
+
+&dsi_ebbg_fhd_ft8716_video {
+	qcom,mdss-dsi-t-clk-post = <0x0D>;
+	qcom,mdss-dsi-t-clk-pre = <0x2F>;
+	qcom,mdss-dsi-display-timings {
+		timing@0{
+			qcom,mdss-dsi-panel-phy-timings = [00 1e 08 08 24 22 08 08 05 03 04 00];
 			qcom,display-topology = <1 0 1>;
 			qcom,default-topology-index = <0>;
 		};
