@@ -457,4 +457,10 @@ config MACH_XIAOMI_E10
         help
           Support for Xiaomi Poco F1 (beryllium)
 
+config MACH_XIAOMI_D5X
+        bool "D5X board"
+        select MACH_XIAOMI_SDM845
+        help
+          Support for Xiaomi Mi MIX 2S (polaris)
+
 endmenu
