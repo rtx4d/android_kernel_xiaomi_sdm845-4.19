@@ -10,6 +10,7 @@ dtb-$(CONFIG_ARCH_QCOM)	+= sdm845-mtp.dtb
 
 dtb-$(CONFIG_MACH_XIAOMI_E10) := xiaomi/beryllium/beryllium-mp-v2.1.dtb
 dtb-$(CONFIG_MACH_XIAOMI_E1N) := xiaomi/dipper/dipper-mp-v2.1.dtb
+dtb-$(CONFIG_MACH_XIAOMI_D5X) := xiaomi/polaris/polaris-mp-v2.1.dtb
 
 always		:= $(dtb-y)
 subdir-y	:= $(dts-dirs)
