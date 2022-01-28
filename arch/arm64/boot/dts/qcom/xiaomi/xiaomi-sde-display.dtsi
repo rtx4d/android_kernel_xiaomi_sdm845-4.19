@@ -166,7 +166,7 @@
 	};
 };
 
-&dsi_jdi_fhd_nt35596s_video {
+&dsi_jdi_fhd_nt35596s_video_display {
 	qcom,mdss-dsi-t-clk-post = <0x0E>;
 	qcom,mdss-dsi-t-clk-pre = <0x34>;
 	qcom,mdss-dsi-display-timings {
@@ -190,7 +190,7 @@
 	};
 };
 
-&dsi_ebbg_fhd_ft8716_video {
+&dsi_ebbg_fhd_ft8716_video_display {
 	qcom,mdss-dsi-t-clk-post = <0x0D>;
 	qcom,mdss-dsi-t-clk-pre = <0x2F>;
 	qcom,mdss-dsi-display-timings {
