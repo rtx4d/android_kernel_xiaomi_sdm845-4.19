@@ -166,20 +166,16 @@
 	qcom,qpnp-labibb-mode = "lcd";
 };
 
-&dsi_jdi_fhd_nt35596s_video {
-	qcom,panel-supply-entries = <&dsi_nt35596s_panel_pwr_supply>;
-	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
-	qcom,platform-reset-gpio = <&tlmm 6 0>;
-};
-
-&dsi_ebbg_fhd_ft8716_video {
-	qcom,panel-supply-entries = <&dsi_nt35596s_panel_pwr_supply>;
-	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
-	qcom,platform-reset-gpio = <&tlmm 6 0>;
-};
-
 &dsi_jdi_fhd_nt35596s_video_display {
-	qcom,dsi-display-active;
+	qcom,panel-supply-entries = <&dsi_nt35596s_panel_pwr_supply>;
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+	qcom,platform-reset-gpio = <&tlmm 6 0>;
+};
+
+&dsi_ebbg_fhd_ft8716_video_display {
+	qcom,panel-supply-entries = <&dsi_nt35596s_panel_pwr_supply>;
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+	qcom,platform-reset-gpio = <&tlmm 6 0>;
 };
 
 &pmi8998_wled {
@@ -238,7 +234,7 @@
 
 &mdss_mdp {
 	#cooling-cells = <2>;
-	connectors = <&sde_rscc &sde_wb>;
+	connectors = <&sde_rscc &sde_wb &sde_dsi>;
 };
 
 &pm8998_l28{
