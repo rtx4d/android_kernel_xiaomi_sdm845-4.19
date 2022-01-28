@@ -114,15 +114,15 @@
 	};
 };
 
-&removed_region {
-	reg = <0 0x85fc0000 0 0x4940000>;
+&removed_region1 {
+	reg = <0 0x86200000 0 0x4700000>;
 };
 
 &qcom_seecom {
 	reg = <0x86d00000 0x03c00000>;
 };
 
-&reserved_memory {
+&reserved_mem {
 		ramdump_fb_mem: ramdump_fb_region@af000000 {
 			compatible = "removed-dma-pool";
 			no-map;
@@ -283,6 +283,7 @@
 	qcom,switch-freq-khz = <600>;
 };
 
+/*
 &red_led {
 	linux,name = "white";
 	qcom,start-idx = <1>;
@@ -304,6 +305,7 @@
 &blue_led {
 	status = "disabled";
 };
+*/
 
 &sde_dp {
 	status = "disabled";
