@@ -19,7 +19,7 @@
 		fstab {
 			system {
 				compatible = "android,system";
-				dev = "/dev/block/mmcblk0p3";
+				dev = "/dev/block/platform/soc/1d84000.ufshc/by-name/system";
 				type = "ext4";
 				mnt_flags = "ro,barrier=1,discard";
 				fsmgr_flags = "wait";
@@ -27,7 +27,6 @@
 			};
 			vendor {
 				fsmgr_flags = "wait";
-				dev = "/dev/block/mmcblk0p2";
 			};
 		};
 	};
